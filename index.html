@@ -180,6 +180,8 @@ tr.miss td{opacity:.45}
 }
 #btUser{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--muted);flex-wrap:wrap}
 #btUser button{font-size:12px;padding:3px 8px}
+.made-by{text-align:center;color:var(--muted);font-size:12px;padding:16px 16px 24px}
+@media print{.made-by{display:block}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="auth.js"></script>
@@ -413,10 +415,12 @@ tr.miss td{opacity:.45}
     </details>
   </section>
 </main>
+<footer class="made-by">Made by James Norman</footer>
+
 
 <script>
 "use strict";
-const APP_VERSION = '1.4.4'; // keep in sync with VERSION (the build fails if they differ)
+const APP_VERSION = '1.4.5'; // keep in sync with VERSION (the build fails if they differ)
 /* ================= Kingery-Bulmash engine (hemispherical surface burst, SI) ================= */
 // Each entry: [Zmin, Zmax, C0, C1, [K0..Kn]]  -> U = C0 + C1*log10(Z); log10(Y) = sum Ki U^i
 const KB = {

@@ -26,6 +26,8 @@ button:disabled{opacity:.6;cursor:default}
 .msg.ok{display:block;background:var(--okbg);color:var(--ok)}
 .msg.bad{display:block;background:var(--badbg);color:var(--bad)}
 .g{display:inline-flex;align-items:center;gap:8px;justify-content:center}
+.made-by{text-align:center;color:var(--muted);font-size:12px;padding:16px 16px 24px}
+@media print{.made-by{display:block}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="auth.js"></script>
@@ -59,6 +61,7 @@ button:disabled{opacity:.6;cursor:default}
 
   <div class="msg" id="msg" role="status"></div>
   <p class="muted" style="margin-top:18px">No email arriving? The administrator can create a one-time sign-in link for you from the Admin page.</p>
+  <p class="made-by" style="padding:12px 0 0">Made by James Norman</p>
 </main>
 <script>
 "use strict";

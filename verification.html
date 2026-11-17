@@ -39,6 +39,8 @@ code{font-size:12px;background:var(--head);padding:1px 4px;border-radius:3px}
 @media (max-width:640px){main{padding:12px 16px}.big{font-size:22px}}
 #btUser{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--muted);flex-wrap:wrap}
 #btUser button{font-size:12px;padding:3px 8px}
+.made-by{text-align:center;color:var(--muted);font-size:12px;padding:16px 16px 24px}
+@media print{.made-by{display:block}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="auth.js"></script>
@@ -92,11 +94,14 @@ code{font-size:12px;background:var(--head);padding:1px 4px;border-radius:3px}
     <div class="tbl"><table id="log"></table></div>
   </section>
 </main>
+<footer class="made-by">Made by James Norman</footer>
+
 <iframe id="app" src="index.html" title="calculator under test" style="position:absolute;width:1200px;height:800px;left:-99999px;top:0;border:0" aria-hidden="true" tabindex="-1"></iframe>
 
 <script>
 "use strict";
 const CHANGELOG = [
+  ['1.4.5', 'Added “Made by James Norman” at the bottom of every page.'],
   ['1.4.4', 'Renamed the app to Blast Calculator.'],
   ['1.4.3', 'Login: plain-English message when the email rate limit is reached.'],
   ['1.4.2', 'Login: sign in by typing the code from the email, so links consumed by corporate email scanners no longer block access. Clearer expired-link message.'],
