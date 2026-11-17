@@ -97,7 +97,9 @@ $('form').addEventListener('submit', async e => {
     $('codeForm').style.display = '';
     sentTo = email;
   } catch (err) {
-    show('Could not send the link: ' + (err.message || err), false);
+    const m = String(err.message || err);
+    if (/rate limit/i.test(m)) show('Too many sign-in emails have been sent in the last hour. Wait a while and try again, use Continue with Google, or ask the administrator for a one-time sign-in link.', false);
+    else show('Could not send the link: ' + m, false);
   } finally { $('sendBtn').disabled = false; }
 });
 let sentTo = '';
