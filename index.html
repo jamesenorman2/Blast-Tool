@@ -3,6 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="/icons/icon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#000000">
 <title>Blast Calculator</title>
 <meta name="description" content="Kingery-Bulmash airblast calculator (IATG 01.80 / UN SaferGuard method) with TNT equivalence, range tables, standoff distances and damage/injury criteria.">
 <style>
@@ -420,7 +425,7 @@ tr.miss td{opacity:.45}
 
 <script>
 "use strict";
-const APP_VERSION = '1.4.5'; // keep in sync with VERSION (the build fails if they differ)
+const APP_VERSION = '1.4.6'; // keep in sync with VERSION (the build fails if they differ)
 /* ================= Kingery-Bulmash engine (hemispherical surface burst, SI) ================= */
 // Each entry: [Zmin, Zmax, C0, C1, [K0..Kn]]  -> U = C0 + C1*log10(Z); log10(Y) = sum Ki U^i
 const KB = {
