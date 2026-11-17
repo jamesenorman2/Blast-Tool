@@ -97,6 +97,7 @@ code{font-size:12px;background:var(--head);padding:1px 4px;border-radius:3px}
 <script>
 "use strict";
 const CHANGELOG = [
+  ['1.4.1', 'Added the 15 kg reflected-pressure reference table from your files as live checks (all 20 match), and the GSA / UK / ISO 16933 glazing hazard rating table to the calculator.'],
   ['1.4.0', 'Sign-in with an allow list (magic link and Google), admin page. Reviewed against FEMA 426 / BIPS-06 (2011): protection levels now follow Table 3-2 word for word, its worked example added as live checks, and the damage-vs-overpressure table relabelled as not part of that edition.'],
   ['1.3.0', 'Responsive layouts for phones, 1080p and 4K. References & verification page with live checks. Version stamp on every deployment.'],
   ['1.2.0', 'IATG 01.80 models: brick-house damage (Tables 40–42), window P-I breakage (Tables 43–46), occupant casualties (Table 54), TNO lung lethality (Table 50). TNT library aligned with IATG Tables 10/11.'],
@@ -115,6 +116,8 @@ const REFS = [
   {src:'UFC 3-340-02 (2008) Table 3-1: Primary Injury Thresholds (as reproduced in your screenshots).', use:'UFC people model and the stand-off thresholds.', ver:'Checked against your screenshot. The curves are checked to pass through the published 50% points (check E).', st:'pass'},
   {src:'Your spreadsheet (KPA/PSI range table, damage and human-effect table).', use:'Range-table layout and colour bands, damage and effect descriptions, laceration and light-injury curves.', ver:'Every in-range cell is reproduced live (check B). Damage text copied verbatim from your sheet.', st:'pass'},
   {src:'Eisenberg, Lynch & Breeding (1975), Vulnerability Model (probit equations).', use:'Spreadsheet people model (lethality and eardrum rupture).', ver:'Shown to reproduce your sheet’s “14.5–29 psi = 1–99% fatalities” and “12.2 psi = 90% eardrum” rows (check E).', st:'pass'},
+  {src:'“15kg TNT at 1 - 10m standoff” reference calculation (your OneDrive, BLAST - Ballistics - CTM).', use:'Independent check of reflected pressure and reflected impulse.', ver:'All 20 values are reproduced to within 0.2% (check K).', st:'pass'},
+  {src:'“Description of Window Glazing Response” (2015): US GSA performance levels, UK protection levels, ISO 16933 hazard ratings (your OneDrive).', use:'Glazing hazard rating reference table in the app.', ver:'Reproduced as published. It is a classification, not a calculation, so there is nothing to check numerically.', st:'note'},
   {src:'Swisdak, M.M. (1994). Simplified Kingery Airblast Calculations. DDESB Seminar.', use:'Independent cross-check of the KB coefficients, and long-range extension beyond Z = 40.', ver:'Implemented separately on this page and compared live (check C).', st:'pass'},
   {src:'TNO Green Book (CPR 16E): head-impact and whole-body-displacement probits.', use:'People in the open being thrown against objects.', ver:'Equations as published in CPR 16E. Not checked against the document in this session.', st:'note'},
   {src:'FEMA 426 / BIPS-06 (2011), Reference Manual to Mitigate Potential Terrorist Attacks Against Buildings, §3.1.1 worked example, Table 3-1 and Table 3-2 (from UFC 4-010-01).', use:'Independent blast-load check, injury thresholds, and the wording of the levels of protection shown in the app.', ver:'Checked against your OneDrive copy (1 - STANDARDS/Blast/FEMA426-bips-06.pdf). The page 3-5 example is reproduced live (check J). Table 3-1 matches UFC 3-340-02 (check E). Table 3-2 wording is used verbatim.', st:'pass'},
@@ -266,6 +269,16 @@ function run(K){
     rJ.push(row([`500 lb TNT at ${ft} ft – amplification Pr/Pi`, (pr/pi).toFixed(1), (gr/gi).toFixed(1), ''], Math.abs(gr/gi - pr/pi) <= 0.2));
   }
   section('J','J. FEMA 426 / BIPS-06 (2011) §3.1.1: worked example','“500 pounds (227 kg) of TNT equivalent will produce an incident peak pressure of 25 psi [at 50 ft] … amplified to 80 psi … at 10 feet the incident peak pressure is 707 psi and the reflected pressure is 5,732 psi.” Tolerance 3% (the text rounds to whole psi).',['Case','FEMA 426','App (live)','Difference',''], rJ);
+
+  // K. Reference calculation from the user's files: 15 kg TNT, reflected pressure & impulse at 1-10 m
+  const rK = [];
+  const T15 = {1:[57950,8056],2:[13950,2907],3:[4707,1682],4:[1996,1163],5:[1014,883],6:[592,708],7:[384,590],8:[270,505],9:[201,441],10:[157,392]};
+  for (const [R, [pr, ir]] of Object.entries(T15)){
+    const b = K.blast(15, 15, +R), d1 = rel(b.Pr, pr), d2 = rel(b.ir, ir);
+    rK.push(row([`15 kg @ ${R} m – reflected pressure (kPa)`, pr, b.Pr.toFixed(0), (d1*100).toFixed(2)+'%'], d1 <= 0.005));
+    rK.push(row([`15 kg @ ${R} m – reflected impulse (kPa·ms)`, ir, b.ir.toFixed(0), (d2*100).toFixed(2)+'%'], d2 <= 0.005));
+  }
+  section('K','K. Independent reference calculation: “15kg TNT at 1 - 10m standoff”','Reflected pressure and impulse table from your files (BLAST - Ballistics - CTM). Tolerance 0.5%.',['Case','Reference','App (live)','Difference',''], rK);
 
   // Summary
   const total = nPass + nFail;

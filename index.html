@@ -373,6 +373,18 @@ tr.miss td{opacity:.45}
       <h2>Primary injury thresholds <span class="hint">UFC 3-340-02, Table 3-1</span></h2>
       <div class="tbl-wrap"><table id="injTbl"></table></div>
       <p class="foot">Lung lethality threshold is about 100 psi for 3 ms, or about 25 psi for 20 ms. Pressure and duration both matter. Lower pressures than shown may cause lung damage or death in children.</p>
+      <h2 style="margin-top:14px">Window glazing hazard ratings</h2>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th class="l">Glazing response</th><th>US GSA</th><th class="l">UK protection</th><th class="l">ISO 16933 hazard</th></tr></thead>
+        <tbody>
+          <tr><td class="l wrap">Glazing does not break. No visible damage to glazing or frame.</td><td>1</td><td class="l">Safe</td><td class="l">A/B/C: No break</td></tr>
+          <tr><td class="l wrap">Glazing cracks but is retained by the frame. Dusting or very small fragments near sill or on floor acceptable.</td><td>2</td><td class="l">Very high</td><td class="l">None</td></tr>
+          <tr><td class="l wrap">Fragments enter the space and land no further than 1 m from the window.</td><td>3a</td><td class="l">High</td><td class="l">D: Very low hazard</td></tr>
+          <tr><td class="l wrap">Fragments land on the floor no further than 3 m from the window.</td><td>3b</td><td class="l">High</td><td class="l">E: Low hazard</td></tr>
+          <tr><td class="l wrap">Fragments hit a witness panel within 3 m, no higher than 1 m above the floor.</td><td>4</td><td class="l">Medium</td><td class="l">E: Low hazard</td></tr>
+          <tr><td class="l wrap">Fragments hit a witness panel within 3 m, higher than 1 m above the floor.</td><td>5</td><td class="l">Low</td><td class="l">F: High hazard</td></tr>
+        </tbody></table></div>
+      <p class="foot">Source: “Description of Window Glazing Response” (2015), in your BLAST - Ballistics - CTM folder. The app’s window model predicts breakage probability (IATG P-I model). It does not predict these hazard ratings, which need test data or SDOF analysis for the specific glazing.</p>
       <h2 style="margin-top:14px">Definitions</h2>
       <div class="foot" style="color:var(--ink)">
         <p><b>Shock wave</b>: a pressure pulse travelling faster than sound.<br>
@@ -404,7 +416,7 @@ tr.miss td{opacity:.45}
 
 <script>
 "use strict";
-const APP_VERSION = '1.4.0'; // keep in sync with VERSION (the build fails if they differ)
+const APP_VERSION = '1.4.1'; // keep in sync with VERSION (the build fails if they differ)
 /* ================= Kingery-Bulmash engine (hemispherical surface burst, SI) ================= */
 // Each entry: [Zmin, Zmax, C0, C1, [K0..Kn]]  -> U = C0 + C1*log10(Z); log10(Y) = sum Ki U^i
 const KB = {
