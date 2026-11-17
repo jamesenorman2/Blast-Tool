@@ -54,7 +54,7 @@ button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
 .scen .top input{flex:1;min-width:0;font-weight:600}
 .scen .meta{font-size:12px;color:var(--muted)}
 .scen .presets{display:flex;flex-wrap:wrap;gap:4px}
-.scen .presets button{font-size:11px;padding:2px 6px}
+.scen .presets button,.as-in .presets button{font-size:11px;padding:2px 6px}
 .field{display:grid;gap:3px}
 .field .lab{display:flex;justify-content:space-between;align-items:center;gap:6px}
 .tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:9px;background:var(--head);border:1px solid var(--line);color:var(--muted)}
@@ -89,6 +89,41 @@ details summary{cursor:pointer;font-weight:600}
   body{background:#fff;color:#000}
   section.card{break-inside:avoid;border-color:#999}
 }
+/* ---- Impact assessment ---- */
+:root{--d0:#9fb3a6;--d1:#e8c547;--d2:#f0922b;--d3:#d9481c;--d4:#7a0d0d;--k:#7a0d0d;--sv:#d9481c;--mn:#e8c547;--ok:#9fb3a6}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--d0:#4f6b5a;--d4:#c0392b;--k:#c0392b}}
+:root[data-theme="dark"]{--d0:#4f6b5a;--d4:#c0392b;--k:#c0392b}
+.as-in{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(230px,100%),1fr));gap:12px;align-items:end}
+.as-in select,.as-in .field{min-width:0;max-width:100%;width:100%}
+.as-head{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0}
+.kpi{border:1px solid var(--line);border-radius:6px;padding:8px 10px}
+.kpi .v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+.kpi .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.as-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px}
+@media (max-width:1000px){.as-grid{grid-template-columns:1fr}}
+.as-grid h3{font-size:14px;margin:4px 0 8px}
+.bars{display:grid;gap:7px}
+.bar{display:grid;grid-template-columns:minmax(100px,190px) minmax(40px,1fr) 84px;gap:8px;align-items:center;font-size:12px}
+.bar .bl{line-height:1.2}
+.bar .bl small{color:var(--muted);display:block}
+.bar .tr{height:18px;background:var(--head);border:1px solid var(--line);border-radius:4px;overflow:hidden;display:flex}
+.bar .tr span{display:block;height:100%}
+.bar .bv{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.stackleg{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--muted);margin:4px 0 8px}
+.stackleg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.gauge{position:relative;height:26px;border-radius:4px;overflow:hidden;display:flex;margin:6px 0 2px}
+.gauge span{height:100%}
+.gauge .mk{position:absolute;top:-2px;bottom:-2px;width:3px;background:var(--ink);box-shadow:0 0 0 2px var(--panel)}
+.gscale{position:relative;height:14px;font-size:10px;color:var(--muted)}
+.gscale b{position:absolute;transform:translateX(-50%);font-weight:400}
+tr.hit td{background:color-mix(in srgb, var(--accent) 14%, transparent)}
+tr.miss td{opacity:.45}
+#rings{width:100%;max-width:520px;display:block;margin:0 auto}
+#rings text{font-size:11px;fill:var(--ink)}
+.ringleg{display:grid;gap:3px;font-size:12px}
+.ringleg div{display:flex;gap:8px;align-items:center}
+.ringleg i{width:14px;height:14px;border-radius:50%;border:3px solid;flex:none}
+.ringleg span:last-child{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:600}
 </style>
 </head>
 <body>
@@ -106,6 +141,99 @@ details summary{cursor:pointer;font-weight:600}
 </header>
 
 <main>
+  <section class="card" id="assess">
+    <h2>Impact assessment <span class="hint">Pick the explosive, its weight and the distance. The tool shows what that pressure does to buildings and people.</span></h2>
+    <div class="as-in">
+      <div class="field"><label>Explosive type</label><select id="asExpl"></select>
+        <span class="meta" id="asExplMeta" style="font-size:12px;color:var(--muted)"></span></div>
+      <div class="field">
+        <div class="lab"><label>Weight</label><span><input type="number" id="asMassN" step="any" min="0.01"> <span id="asMassU"></span></span></div>
+        <input type="range" id="asMass" min="0" max="1000">
+      </div>
+      <div class="field">
+        <div class="lab"><label>Distance to target</label><span><input type="number" id="asRN" step="any" min="0.1"> <span class="uDist"></span></span></div>
+        <input type="range" id="asR" min="0" max="1000">
+      </div>
+      <div class="field"><label>Building type at that distance</label><select id="asBld"></select></div>
+      <div class="field"><label>Where are the people?</label>
+        <select id="asExp">
+          <option value="open">In the open, standing (side-on + dynamic pressure)</option>
+          <option value="wall">In the open, next to a wall (reflected pressure)</option>
+          <option value="inside">Inside the building selected</option>
+        </select></div>
+      <div class="field"><label>People injury model</label>
+        <select id="asModel">
+          <option value="iatg">IATG 01.80 Table 50 / TNO (pressure + duration). Recommended</option>
+          <option value="sheet">Spreadsheet basis (Eisenberg probit, 14.5–29 psi lethal)</option>
+          <option value="ufc">UFC 3-340-02 Table 3-1 (5/15, 30/80, 100/130/200 psi)</option>
+        </select></div>
+      <div class="field"><label>Window size (for occupants / window ring)</label>
+        <select id="asWin"><option value="small">Small (&lt;1 m²)</option><option value="medium">Medium (1–3 m²)</option><option value="large">Large (&gt;3 m²)</option></select></div>
+      <div class="field">
+        <div class="lab"><label>People at this distance</label><input type="number" id="asN" min="0" step="1" style="width:90px"></div>
+      </div>
+      <div class="field">
+        <div class="lab"><label>Crowd density around the blast</label><span><input type="number" id="asDen" min="0" step="0.01" style="width:80px"> people/m²</span></div>
+        <div class="presets" style="display:flex;gap:4px;flex-wrap:wrap">
+          <button data-den="0.02">Sparse 0.02</button><button data-den="0.1">Street 0.1</button><button data-den="0.5">Busy 0.5</button><button data-den="1">Crowd 1</button><button data-den="2">Packed 2</button>
+        </div>
+      </div>
+      <label style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="asCons"> Use the upper (worst-case) TNT factor for HME and ranged explosives</label>
+    </div>
+
+    <div class="as-head" id="asKpi"></div>
+
+    <div class="as-grid">
+      <div>
+        <h3>Buildings: damage at this distance <span class="dim" style="font-weight:400">(IATG 01.80 §6.2 + FEMA 426 Table 4-1)</span></h3>
+        <div class="stackleg">
+          <span><i style="background:var(--d0)"></i>None</span><span><i style="background:var(--d1)"></i>Light</span><span><i style="background:var(--d2)"></i>Moderate</span><span><i style="background:var(--d3)"></i>Severe</span><span><i style="background:var(--d4)"></i>Destroyed / collapse</span>
+        </div>
+        <div class="bars" id="asBldBars"></div>
+        <div class="effects" id="asLop" style="margin-top:10px"></div>
+        <div id="asBrick" style="margin-top:10px"></div>
+
+        <h3 style="margin-top:16px">People: outcome at this distance</h3>
+        <div class="stackleg">
+          <span><i style="background:var(--k)"></i>Killed</span><span><i style="background:var(--sv)"></i>Serious injury</span><span><i style="background:var(--mn)"></i>Minor injury / eardrum</span><span><i style="background:var(--ok)"></i>Uninjured</span>
+        </div>
+        <div class="bars" id="asPplStack"></div>
+        <div class="bars" id="asPplBars" style="margin-top:10px"></div>
+      </div>
+      <div>
+        <h3>Hazard zones (plan view, to scale)</h3>
+        <svg id="rings" viewBox="0 0 520 520" role="img" aria-label="Hazard zone rings"></svg>
+        <div class="ringleg" id="ringLeg"></div>
+        <h3 style="margin-top:14px">Crowd estimate (people in the open, all directions)</h3>
+        <div class="bars" id="asCrowd"></div>
+        <p class="foot" id="asCrowdNote"></p>
+      </div>
+    </div>
+
+    <h3 style="margin-top:16px">Where this pressure sits on the scale</h3>
+    <div id="asGauge"></div>
+    <div class="two" style="margin-top:10px">
+      <div class="tbl-wrap"><table id="asSheetTbl"></table></div>
+      <div class="tbl-wrap"><table id="asFemaTbl"></table></div>
+    </div>
+    <details class="foot" style="margin-top:10px"><summary>How the damage and casualty numbers are worked out</summary>
+      <ul>
+        <li><b>Blast loads</b>: Kingery-Bulmash (IATG 01.80 §5.1.2). The engine reproduces IATG Table 5 (e.g. 1000 kg at 50 m: 0.43 bar, 5.9 bar·ms, 1.01 bar reflected, 37.9 ms, 82.4 ms, 398 m/s). Dynamic pressure q = 5/2·P²/(7P₀+P) (IATG Table 6).</li>
+        <li><b>Brick housing (IATG §6.2.1, Tables 40–42)</b>: R<sub>x</sub> = K<sub>x</sub>·M<sup>1/3</sup> / (1+(3175/M)²)<sup>1/6</sup>, using the Gilbert, Lees &amp; Scilly K-factors A 4.8, B 7.1, Cb 12.4, Ca 21.3, D 42.6. M is the TNT-equivalent mass.</li>
+        <li><b>Windows (IATG §6.2.3, Tables 43–46)</b>: Swiss P-I model (P−A)(I−B)=C with the small/medium/large probits. The model uses incident pressure and impulse. Occupant injury from breakage follows Table 46 (100% breakage → 100% minor, 10% major, 1% lethal).</li>
+        <li><b>Other building types</b>: lognormal fragility curves (Light / Moderate / Severe / Destroyed) with medians taken from the FEMA 426 Table 4-1 overpressure ranges and your spreadsheet. Dispersion β = 0.35.</li>
+        <li><b>People inside</b>: casualty probabilities by damage category from IATG Table 54 (Gilbert, Lees &amp; Scilly). For FEMA building types the states map to A / B / Cb / Ca. These combine with primary blast and window-glass injury, treated as independent.</li>
+        <li><b>IATG model (default)</b>: IATG Table 50 / TNO Green Book lung lethality. Pr = 5 + 5.7 ln V, with V = (P/P₀)/(4.17 − 0.00164·ln t/t + 0.0161/t), where t is the positive-phase duration (s) for a 70 kg body. It reproduces the 11% lethality in IATG Table 53 when reflected pressure is used. Standing in the open uses side-on + dynamic pressure. Next to a wall uses reflected pressure. Eardrum uses the TNO probit −12.6 + 1.524 ln P.</li>
+        <li><b>Spreadsheet model</b>: Eisenberg probits. Lethality: −77.1 + 6.91 ln P; eardrum: −15.6 + 1.93 ln P. They reproduce your sheet’s 14.5–29 psi and 2.4–12.2 psi rows. They are based on long-duration (nuclear-scale) blasts, so they <b>overstate</b> deaths from small charges.</li>
+        <li><b>UFC 3-340-02 model</b>: lognormal curves through Table 3-1 (eardrum 5/15, lung 30/80, lethality 100/130/200 psi). These ignore duration.</li>
+        <li><b>Being thrown (TNO)</b>: head impact Y = 5 − 8.49 ln(2430/P + 4·10⁸/(P·i)); whole-body displacement Y = 5 − 2.44 ln(7380/P + 1.3·10⁹/(P·i)). P is in Pa and i in Pa·s.</li>
+        <li><b>In the open</b>: lacerations use a lognormal curves fitted to your sheet: light injuries from about 1 psi (median 1.5 psi), serious lacerations median 3 psi (sheet: 2 psi injured, 3 psi serious common, 5 psi universal). Killed = the highest of primary lethality, head impact and body displacement.</li>
+        <li><b>Crowd estimate</b>: integrates the per-person probabilities over the ground area at the given density. Everyone inside the fireball limit is counted as killed.</li>
+        <li><b>Not modelled</b>: fragments and debris (IATG §6.3.3 needs case- and debris-density data), shielding, and channelling between buildings. Real casualties from a cased device or vehicle bomb are often driven by fragments. Treat these numbers as planning estimates with large uncertainty.</li>
+      </ul>
+    </details>
+  </section>
+
   <section class="card">
     <h2>Scenarios <span class="hint">Compare up to 4 charges side by side. Sliders are logarithmic. Type exact values in the boxes.</span></h2>
     <div class="row noprint" style="margin-bottom:10px">
@@ -165,7 +293,7 @@ details summary{cursor:pointer;font-weight:600}
   <section class="card">
     <h2>Explosive library <span class="hint">TNT-equivalent factors. Edit any value. Changes are saved in this browser.</span></h2>
     <div class="warn" style="margin-bottom:10px">
-      <b>Check these factors before relying on them.</b> Military and commercial values are typical published blast-equivalence values (UFC 3-340-02 Table 2-1 / ConWep). HME values are <b>indicative only</b>. Real performance varies widely with purity, density, mixing, particle size, confinement and charge size. For stand-off planning, use the upper end of the range. Check every factor against your organisation’s reference (AASTP-1 / IATG 01.80).
+      <b>Check these factors before relying on them.</b> Entries marked “AASTP-1 T5-2” are the IATG 01.80 Table 10 values for peak pressure and impulse. Entries marked “IATG T11” are heat-of-detonation equivalents (UFC 3-340-02). HME values are <b>indicative only</b>. Real performance varies widely with purity, density, mixing, particle size, confinement and charge size. For stand-off planning, use the upper end of the range. Check every factor against your organisation’s reference (AASTP-1 / IATG 01.80).
     </div>
     <div class="tbl-wrap"><table id="libTbl"></table></div>
     <div class="row noprint" style="margin-top:8px">
@@ -301,38 +429,36 @@ function standoff(Wp, targetKpa){
 // cat: MIL / COM / HME. p = pressure factor, i = impulse factor, lo/hi = plausible range of factor
 const DEFAULT_LIB = [
   {id:'tnt',   name:'TNT', cat:'MIL', p:1.00, i:1.00, note:'Reference explosive'},
-  {id:'c4',    name:'Composition C-4', cat:'MIL', p:1.37, i:1.19, note:'UFC 3-340-02'},
-  {id:'compb', name:'Composition B', cat:'MIL', p:1.11, i:0.98, note:'UFC 3-340-02'},
-  {id:'compa3',name:'Composition A-3', cat:'MIL', p:1.09, i:1.07, note:'UFC 3-340-02'},
-  {id:'semtex',name:'Semtex (1A / H)', cat:'MIL', p:1.25, i:1.15, lo:1.15, hi:1.35, note:'PETN/RDX plastic; indicative'},
-  {id:'pe4',   name:'PE4 / PE7 (RDX plastic)', cat:'MIL', p:1.20, i:1.10, lo:1.10, hi:1.37, note:'Indicative; similar to C-4'},
-  {id:'petn',  name:'PETN', cat:'MIL', p:1.27, i:1.11, note:'ConWep'},
-  {id:'rdx',   name:'RDX', cat:'MIL', p:1.14, i:1.09, note:'Indicative'},
-  {id:'hmx',   name:'HMX', cat:'MIL', p:1.25, i:1.10, note:'Indicative'},
-  {id:'cyclo', name:'Cyclotol 70/30', cat:'MIL', p:1.14, i:1.09, note:'UFC 3-340-02'},
-  {id:'octol', name:'Octol 70/30', cat:'MIL', p:1.06, i:1.06, note:'UFC 3-340-02'},
-  {id:'h6',    name:'H-6', cat:'MIL', p:1.38, i:1.15, note:'UFC 3-340-02'},
-  {id:'hbx1',  name:'HBX-1', cat:'MIL', p:1.17, i:1.16, note:'UFC 3-340-02'},
-  {id:'hbx3',  name:'HBX-3', cat:'MIL', p:1.14, i:0.97, note:'UFC 3-340-02'},
-  {id:'minol', name:'Minol II', cat:'MIL', p:1.20, i:1.11, note:'UFC 3-340-02'},
-  {id:'pent',  name:'Pentolite 50/50', cat:'MIL', p:1.42, i:1.00, note:'UFC 3-340-02 (5–100 psi)'},
-  {id:'picr',  name:'Picratol', cat:'MIL', p:0.90, i:0.93, note:'UFC 3-340-02'},
-  {id:'tetryl',name:'Tetryl', cat:'MIL', p:1.07, i:1.07, note:'UFC 3-340-02'},
-  {id:'tetryt',name:'Tetrytol 75/25', cat:'MIL', p:1.06, i:1.06, note:'UFC 3-340-02'},
-  {id:'trit',  name:'Tritonal', cat:'MIL', p:1.07, i:0.96, note:'UFC 3-340-02'},
-  {id:'amatol',name:'Amatol 80/20', cat:'MIL', p:0.99, i:0.98, note:'Indicative'},
-  {id:'anfo',  name:'ANFO (commercial 94/6)', cat:'COM', p:0.82, i:0.82, lo:0.74, hi:0.87, note:'ConWep 0.82; literature 0.74–0.87'},
-  {id:'emul',  name:'Emulsion / watergel (commercial)', cat:'COM', p:0.80, i:0.80, lo:0.60, hi:0.90, note:'Product dependent'},
-  {id:'dyn',   name:'Dynamite (NG based)', cat:'COM', p:0.90, i:0.90, lo:0.60, hi:1.10, note:'Grade dependent'},
+  {id:'anfo',  name:'ANFO', cat:'COM', p:0.82, i:0.82, lo:0.74, hi:0.87, note:'AASTP-1 T5-2 (IATG T10), 0.007–0.7 MPa'},
+  {id:'compb', name:'Composition B', cat:'MIL', p:1.11, i:0.98, note:'AASTP-1 T5-2 (IATG T10), 0.035–0.35 MPa'},
+  {id:'c4',    name:'Composition C-4', cat:'MIL', p:1.37, i:1.19, note:'AASTP-1 T5-2 (IATG T10), 0.07–0.7 MPa'},
+  {id:'h6',    name:'H-6', cat:'MIL', p:1.38, i:1.15, note:'AASTP-1 T5-2 (IATG T10), 0.035–0.7 MPa'},
+  {id:'octol', name:'Octol 75/25', cat:'MIL', p:1.06, i:1.06, note:'AASTP-1 T5-2 (IATG T10), estimate'},
+  {id:'pent',  name:'Pentolite', cat:'MIL', p:1.42, i:1.00, note:'AASTP-1 T5-2 (IATG T10), 0.035–0.7 MPa'},
+  {id:'petn',  name:'PETN', cat:'MIL', p:1.27, i:1.11, note:'AASTP-1 T5-2 (IATG T10), 0.035–0.7 MPa'},
+  {id:'rdx',   name:'RDX', cat:'MIL', p:1.14, i:1.09, note:'AASTP-1 T5-2 (IATG T10)'},
+  {id:'cyclo', name:'Cyclotol (RDX/TNT 60/40)', cat:'MIL', p:1.14, i:1.09, note:'AASTP-1 T5-2 (IATG T10), 0.035–0.35 MPa'},
+  {id:'tetryl',name:'Tetryl', cat:'MIL', p:1.07, i:1.07, note:'AASTP-1 T5-2 (IATG T10), 0.021–0.14 MPa; impulse not given, set = pressure'},
+  {id:'torpex',name:'Torpex II', cat:'MIL', p:1.23, i:1.28, note:'AASTP-1 T5-2 (IATG T10)'},
+  {id:'trit',  name:'Tritonal 80/20', cat:'MIL', p:1.07, i:0.96, note:'AASTP-1 T5-2 (IATG T10), 0.035–0.7 MPa'},
+  {id:'hmx',   name:'HMX', cat:'MIL', p:1.15, i:1.15, note:'Heat of detonation, UFC 3-340-02 T2-1 (IATG T11)'},
+  {id:'pbx9407',name:'PBX 9407', cat:'MIL', p:1.14, i:1.14, note:'Heat of detonation (IATG T11)'},
+  {id:'baratol',name:'Baratol', cat:'MIL', p:0.53, i:0.53, note:'Heat of detonation (IATG T11)'},
+  {id:'nq',    name:'Nitroguanidine (NQ)', cat:'MIL', p:0.76, i:0.76, note:'Heat of detonation (IATG T11)'},
+  {id:'ng',    name:'Nitroglycerin (NG)', cat:'COM', p:1.13, i:1.13, note:'Heat of detonation (IATG T11)'},
+  {id:'semtex',name:'Semtex (1A / H)', cat:'MIL', p:1.25, i:1.15, lo:1.13, hi:1.37, note:'PETN/RDX plastic. Indicative (between C-4 and PETN)'},
+  {id:'pe4',   name:'PE4 / PE7 (RDX plastic)', cat:'MIL', p:1.20, i:1.10, lo:1.13, hi:1.37, note:'Indicative: similar to C-4'},
+  {id:'emul',  name:'Emulsion / watergel (commercial)', cat:'COM', p:0.80, i:0.80, lo:0.60, hi:0.90, note:'Product dependent. Indicative'},
+  {id:'dyn',   name:'Dynamite (NG based)', cat:'COM', p:0.90, i:0.90, lo:0.60, hi:1.13, note:'Grade dependent. Indicative'},
   {id:'nm',    name:'Nitromethane', cat:'COM', p:1.00, i:1.00, lo:0.90, hi:1.10, note:'Indicative'},
-  {id:'bp',    name:'Black powder', cat:'COM', p:0.50, i:0.50, lo:0.40, hi:0.55, note:'Deflagrates; strongly confinement dependent'},
-  {id:'tatp',  name:'TATP', cat:'HME', p:0.80, i:0.80, lo:0.70, hi:0.88, note:'Indicative; purity dependent'},
+  {id:'bp',    name:'Black powder', cat:'COM', p:0.50, i:0.50, lo:0.40, hi:0.55, note:'Deflagrates. Strongly confinement dependent'},
+  {id:'tatp',  name:'TATP', cat:'HME', p:0.80, i:0.80, lo:0.70, hi:0.88, note:'Indicative. Purity dependent'},
   {id:'hmtd',  name:'HMTD', cat:'HME', p:0.74, i:0.74, lo:0.60, hi:0.80, note:'Indicative'},
-  {id:'ianfo', name:'Improvised ANFO', cat:'HME', p:0.75, i:0.75, lo:0.50, hi:0.87, note:'Mixing/prill quality dependent'},
-  {id:'anal',  name:'AN / Aluminium (ammonal type)', cat:'HME', p:0.90, i:0.90, lo:0.65, hi:1.10, note:'Al content & particle size dependent'},
-  {id:'an',    name:'Ammonium nitrate (neat)', cat:'HME', p:0.42, i:0.42, lo:0.32, hi:0.55, note:'Large-scale/accidental; very variable'},
+  {id:'ianfo', name:'Improvised ANFO', cat:'HME', p:0.75, i:0.75, lo:0.50, hi:0.87, note:'Mixing / prill quality dependent'},
+  {id:'anal',  name:'AN / Aluminium (ammonal type)', cat:'HME', p:0.90, i:0.90, lo:0.65, hi:1.10, note:'Al content and particle size dependent'},
+  {id:'an',    name:'Ammonium nitrate (neat)', cat:'HME', p:0.42, i:0.42, lo:0.32, hi:0.55, note:'Large-scale / accidental. Very variable'},
   {id:'un',    name:'Urea nitrate', cat:'HME', p:0.75, i:0.75, lo:0.60, hi:0.85, note:'Indicative'},
-  {id:'chlor', name:'Chlorate / perchlorate mixtures', cat:'HME', p:0.50, i:0.50, lo:0.30, hi:0.80, note:'Indicative; highly variable'},
+  {id:'chlor', name:'Chlorate / perchlorate mixtures', cat:'HME', p:0.50, i:0.50, lo:0.30, hi:0.80, note:'Indicative. Highly variable'},
 ];
 const CAT_LABEL = {MIL:'Military', COM:'Commercial', HME:'Homemade (HME)', CUS:'Custom'};
 
@@ -388,11 +514,12 @@ function defaultScens(){
     {name:'Scenario C', expl:'tnt', mass:1000, p:1, i:1},
   ];
 }
-let lib = LS.get('lib', clone(DEFAULT_LIB));
+let lib = LS.get('lib.v2', clone(DEFAULT_LIB));
 let st = Object.assign({
   scens: defaultScens(), burst:'surface', probe:50, dists:DEFAULT_DISTS, bandB:2, bandR:3, units:'si'
 }, LS.get('state', {}));
-const save = () => { LS.set('state', st); LS.set('lib', lib); };
+st.as = Object.assign({expl:'tnt', mass:100, R:30, bld:'brick', win:'medium', exposure:'open', model:'iatg', N:100, den:0.1, cons:true}, st.as || {});
+const save = () => { LS.set('state', st); LS.set('lib.v2', lib); };
 
 /* ================= Units ================= */
 const M_PER_FT = 0.3048, KG_PER_LB = 0.45359237;
@@ -545,6 +672,7 @@ function renderProbe(){
       <dl>
         <dt>Scaled distance Z</dt><dd>${b.Zp.toFixed(3)} m/kg<sup>1/3</sup></dd>
         <dt>Reflected pressure</dt><dd>${sig(b.Pr)} kPa (${sig(b.Pr/KPA_PER_PSI)} psi)</dd>
+        <dt>Dynamic pressure</dt><dd>${sig(qDyn(b.Pso))} kPa (${sig(qDyn(b.Pso)/KPA_PER_PSI)} psi)</dd>
         <dt>Incident impulse</dt><dd>${imps(b.is)}</dd>
         <dt>Reflected impulse</dt><dd>${imps(b.ir)}</dd>
         <dt>Time of arrival</dt><dd>${isNaN(b.ta)?'—':sig(b.ta)+' ms'}</dd>
@@ -709,6 +837,7 @@ function update(full){
   save();
   if (full) renderScens();
   renderProbe(); renderTables(); renderChart(); renderLegend();
+  if (st.as) renderAssess();
 }
 function renderAll(){
   document.querySelectorAll('.uDist').forEach(e => e.textContent = dU());
@@ -716,6 +845,7 @@ function renderAll(){
   $('burst').value = st.burst;
   $('dists').value = st.dists;
   $('bandB').value = st.bandB; $('bandR').value = st.bandR;
+  initAssessUI();
   renderLib(); renderRefs(); update(true);
 }
 
@@ -770,17 +900,17 @@ $('libTbl').addEventListener('click', e => {
   const idx = +e.target.closest('tr').dataset.idx, id = lib[idx].id;
   lib.splice(idx, 1);
   st.scens.forEach(s => { if (s.expl === id){ s.expl = 'tnt'; s.p = 1; s.i = 1; } });
-  renderLib(); update(true);
+  renderLib(); initAssessUI(); update(true);
 });
 $('addExpl').onclick = () => {
   lib.push({id:'c' + Date.now().toString(36), name:'Custom explosive', cat:'CUS', p:1.0, i:1.0, note:'User defined'});
-  renderLib(); update(true);
+  renderLib(); initAssessUI(); update(true);
 };
 $('resetLib').onclick = () => {
   if (!confirm('Restore the default explosive library? Your custom entries and edits will be lost.')) return;
   lib = clone(DEFAULT_LIB);
   st.scens.forEach(s => { if (!libById(s.expl)){ s.expl='tnt'; s.p=1; s.i=1; } });
-  renderLib(); update(true);
+  renderLib(); initAssessUI(); update(true);
 };
 $('themeBtn').onclick = () => {
   const r = document.documentElement;
@@ -789,8 +919,382 @@ $('themeBtn').onclick = () => {
   renderChart();
 };
 
+/* ================= Impact assessment ================= */
+function erf(x){ // Abramowitz-Stegun 7.1.26
+  const s = x < 0 ? -1 : 1; x = Math.abs(x);
+  const t = 1/(1 + 0.3275911*x);
+  return s*(1 - (((((1.061405429*t - 1.453152027)*t) + 1.421413741)*t - 0.284496736)*t + 0.254829592)*t*Math.exp(-x*x));
+}
+const Phi = z => 0.5*(1 + erf(z/Math.SQRT2));
+const logn = (x, med, beta) => (x > 0 && isFinite(x)) ? Phi(Math.log(x/med)/beta) : 0;
+const probit = Y => isFinite(Y) ? Phi(Y - 5) : 0;
+
+// ---- FEMA-based fragility (median psi for exceeding Light / Moderate / Severe / Destroyed) ----
+const BUILDINGS = [
+  {id:'brick', name:'Brick-built house (IATG Scilly / GLS)', iatg:true},
+  {id:'wood',  name:'Wood-frame house', med:[0.7,1.4,2.5,5.5],
+   st:['Minor damage to house structures','Uninhabitable – wood panels blown in','Partial collapse of walls and roofs','Nearly complete destruction / collapse']},
+  {id:'urm',   name:'Unreinforced masonry / cinder block', med:[0.7,1.5,2.3,4.0],
+   st:['Minor cracking','Major cracking','Walls shattered (FEMA 1.8–2.9 psi)','Collapse']},
+  {id:'metal', name:'Metal-clad / pre-engineered industrial', med:[0.8,1.4,3.0,6.0],
+   st:['Minor cladding damage','Sheet-metal panels buckled (FEMA 1.1–1.8 psi)','Panels fail – frame distorted','Collapse']},
+  {id:'steel', name:'Steel-frame building', med:[1.0,3.0,5.5,11],
+   st:['Glazing / cladding damage','Frame distorted, pulled from foundation','Serious structural damage (FEMA 4–7 psi)','Probable total destruction']},
+  {id:'rc',    name:'Reinforced-concrete building', med:[1.5,4.0,7.5,11],
+   st:['Non-structural damage','Moderate structural damage','Severe damage (FEMA 6–9 psi)','Probable total destruction (FEMA 10–12 psi)']},
+];
+const FEMA_T41 = [
+  {lo:0.15, hi:0.22, txt:'Typical window glass breakage'},
+  {lo:0.5,  hi:1.1,  txt:'Minor damage to some buildings'},
+  {lo:1.1,  hi:1.8,  txt:'Panels of sheet metal buckled'},
+  {lo:1.8,  hi:2.9,  txt:'Failure of concrete block walls'},
+  {lo:4,    hi:7,    txt:'Serious damage to steel-framed buildings'},
+  {lo:5,    hi:null, txt:'Collapse of wood-framed buildings'},
+  {lo:6,    hi:9,    txt:'Severe damage to reinforced concrete structures'},
+  {lo:10,   hi:12,   txt:'Probable total destruction of most buildings'},
+];
+const LOP = [
+  ['No damage', 'No damage expected.'],
+  ['High protection', 'Superficial damage. Minor glazing / cladding damage. Few, minor injuries.'],
+  ['Medium protection','Damaged but repairable. Some permanent deformation. Moderate injuries.'],
+  ['Low protection',  'Heavily damaged and not economically repairable. Collapse unlikely. Serious injuries.'],
+  ['Very low / below AT standard','Onset of structural collapse or progressive collapse. Major casualties.'],
+];
+function bldProbs(b, psi){
+  const ex = b.med.map(m => logn(psi, m, b.beta || 0.35));
+  for (let k=1;k<4;k++) ex[k] = Math.min(ex[k], ex[k-1]);
+  return {ex, parts:[1-ex[0], ex[0]-ex[1], ex[1]-ex[2], ex[2]-ex[3], ex[3]]};
+}
+
+// ---- IATG 01.80 §6.2.1: brick housing damage ranges (Scilly; Gilbert, Lees & Scilly K-factors) ----
+const SCILLY = [ // cat, K (GLS), definition (Table 40), mapped damage-state index (1..4), Table 54 [P(K), P(K+SI), P(K+SI+LI)]
+  {c:'A',  K:4.8,  d:'Houses completely demolished (50–75% of external brickwork destroyed)', s:4, p:[0.62,0.71,0.84]},
+  {c:'B',  K:7.1,  d:'Beyond repair, must be demolished: partial/total roof collapse, unrepairable cracks', s:3, p:[0.096,0.15,0.38]},
+  {c:'Cb', K:12.4, d:'Uninhabitable, repairable with extensive work: up to 25% of walls demolished', s:2, p:[0.009,0.043,0.13]},
+  {c:'Ca', K:21.3, d:'Uninhabitable, repairable reasonably quickly: minor structural damage, partitions wrenched', s:1, p:[0,0.002,0.006]},
+  {c:'D',  K:42.6, d:'Habitable but needs repairs: ceilings, tiling, minor damage to walls and glazing', s:1, p:[0,0,0]},
+];
+const scillyR = (K, M) => K*Math.cbrt(M)/Math.pow(1 + Math.pow(3175/M, 2), 1/6);
+function scillyCat(R, M){ for (const x of SCILLY) if (R <= scillyR(x.K, M)) return x; return null; }
+function brickParts(R, M){
+  const c = scillyCat(R, M), parts = [0,0,0,0,0];
+  parts[c ? c.s : 0] = 1;
+  return {cat:c, parts, ex:[parts.slice(1).reduce((a,b)=>a+b,0), parts[2]+parts[3]+parts[4], parts[3]+parts[4], parts[4]]};
+}
+
+// ---- IATG 01.80 §6.2.3: window breakage, Swiss P-I model (Tables 43–46). P kPa, I kPa·ms ----
+const WIN = {small:{n:'small (<1 m²)', a:-1.013, b:-2.558}, medium:{n:'medium (1–3 m²)', a:0.796, b:-0.788}, large:{n:'large (>3 m²)', a:2.674, b:0.983}};
+function windowBreak(P, I, size){
+  const {a, b} = WIN[size];
+  const ok = pr => { const A = Math.exp((pr-a)/3.356), B = Math.exp((pr-b)/1.932), C = Math.exp(1.3 + 2.23*Math.log(A));
+                     return P > A && I > B && (P-A)*(I-B) >= C; };
+  if (!(P > 0 && I > 0) || !ok(0)) return 0;
+  if (ok(10)) return 1;
+  let lo = 0, hi = 10;
+  for (let k=0;k<50;k++){ const m=(lo+hi)/2; if (ok(m)) lo=m; else hi=m; }
+  return Phi(lo - 5);
+}
+// Table 46: breakage -> [lethal, major, minor] for occupants behind the glass
+function glassInjury(br){
+  const pts = [[0.01,[1e-5,1e-4,1e-3]],[0.5,[1e-3,1e-2,0.1]],[1,[0.01,0.1,1]]];
+  if (br <= 0) return [0,0,0];
+  if (br < 0.01) return pts[0][1].map(v => v*br/0.01);
+  const [p0, p1] = br <= 0.5 ? [pts[0], pts[1]] : [pts[1], pts[2]];
+  const f = (br - p0[0])/(p1[0] - p0[0]);
+  return p0[1].map((v,k) => Math.exp(Math.log(v) + f*(Math.log(p1[1][k]) - Math.log(v))));
+}
+
+// ---- Personnel (IATG 01.80 §6.3) ----
+const qDyn = ps => 2.5*ps*ps/(7*P0 + ps);           // kPa, IATG Table 6
+// IATG Table 50 (TNO Green Book 2nd ed.): probability of fatal lung injury. pEff kPa, td ms
+function tnoLung(pEff, td, mass=70){
+  if (!(pEff > 0 && td > 0)) return 0;
+  const t = td/1000*Math.cbrt(70/mass);
+  const V = (pEff/P0)/(4.17 - 0.00164*Math.log(t)/t + 0.0161/t);
+  return Phi(5.7*Math.log(V));
+}
+const MODEL_NAME = {iatg:'IATG 01.80 / TNO (duration-dependent)', sheet:'Spreadsheet (Eisenberg)', ufc:'UFC 3-340-02 Table 3-1'};
+
+/** Per-person outcome probabilities. b = blast() result, R metres, W TNT-eq kg. */
+function peopleAt(b, model, exposure, bld, R, W, win){
+  if (b.tooClose) return {killed:1, serious:1, minor:1, eff:{}};
+  const psiI = b.Pso/KPA_PER_PSI;
+  // Pressure loading the body: open = side-on + dynamic (standing, facing blast); wall = reflected; inside = side-on
+  const pEff = exposure === 'wall' ? b.Pr : exposure === 'open' ? b.Pso + qDyn(b.Pso) : b.Pso;  // kPa
+  const psiP = pEff/KPA_PER_PSI, pa = pEff*1000;
+  let fat, lung, ear;
+  if (model === 'ufc'){
+    fat = logn(psiP, 130, 0.15); lung = logn(psiP, 80, 0.42); ear = logn(psiP, 15, 0.47);
+  } else if (model === 'sheet'){
+    fat = probit(-77.1 + 6.91*Math.log(pa)); ear = probit(-15.6 + 1.93*Math.log(pa)); lung = logn(psiP, 30, 0.42);
+  } else {
+    fat = tnoLung(pEff, b.td); ear = probit(-12.6 + 1.524*Math.log(pa)); lung = logn(psiP, 30, 0.42);
+  }
+  const ps = b.Pso*1000, is = b.is; // Pa, Pa·s
+  const head = (ps > 0 && is > 0) ? probit(5 - 8.49*Math.log(2430/ps + 4e8/(ps*is))) : 0;
+  const body = (ps > 0 && is > 0) ? probit(5 - 2.44*Math.log(7380/ps + 1.3e9/(ps*is))) : 0;
+  const light = logn(psiI, 1.5, 0.40); // sheet: light fragment injuries from ~1 psi
+  const eff = {fat, lung, ear, head, body, light};
+  let killed, serious, minor;
+  if (exposure === 'inside'){
+    // Occupants: primary blast + building damage (Table 54) + window glass (Table 46)
+    let pb;
+    if (bld.iatg){ const c = scillyCat(R, W); pb = c ? c.p : [0,0,0]; eff.cat = c ? c.c : 'none'; }
+    else { const q = bldProbs(bld, psiI).parts; const rows = [[0,0,0],[0,0.002,0.006],[0.009,0.043,0.13],[0.096,0.15,0.38],[0.62,0.71,0.84]];
+           pb = [0,1,2].map(k => q.reduce((s, w, j) => s + w*rows[j][k], 0)); }
+    const br = windowBreak(b.Pso, b.is, win || 'medium'); const gi = glassInjury(br);
+    eff.bk = pb[0]; eff.bksi = pb[1]; eff.glassBreak = br; eff.glassLeth = gi[0]; eff.glassMajor = gi[1]; eff.glassMinor = gi[2];
+    const comb = (...p) => 1 - p.reduce((s, x) => s*(1 - x), 1);
+    killed = comb(fat, pb[0], gi[0]);
+    serious = Math.max(comb(lung, pb[1], gi[1]), killed);
+    minor = Math.max(comb(ear, pb[2], gi[2]), serious);
+  } else {
+    const lac = logn(psiI, 3.0, 0.45);   // sheet: 2 psi injured by glass/debris, 3 serious common, 5 universal
+    eff.lac = lac;
+    killed = Math.max(fat, head, body);
+    serious = Math.max(lung, lac, killed);
+    minor = Math.max(ear, light, serious);
+  }
+  return {killed, serious, minor, eff};
+}
+
+function asFactors(){
+  const e = libById(st.as.expl) || lib[0];
+  const useHi = st.as.cons && e.hi != null;
+    return {e, p: useHi ? e.hi : e.p, i: useHi ? e.hi : e.i};
+}
+function asW(){
+  const {p, i} = asFactors(), bf = burstFactor();
+  return {Wp: st.as.mass*p*bf, Wi: st.as.mass*i*bf};
+}
+// Largest radius at which f(R) >= target (f decreasing with R). NaN if never reached.
+function radiusWhere(f, target){
+  let a = Math.log(0.05), b = Math.log(1e5);
+  if (f(Math.exp(a)) < target) return NaN;
+  if (f(Math.exp(b)) >= target) return Infinity;
+  for (let k=0;k<60;k++){ const m=(a+b)/2; if (f(Math.exp(m)) >= target) a=m; else b=m; }
+  return Math.exp((a+b)/2);
+}
+function crowdEstimate(Wp, Wi, density, model){
+  const r0 = Z_MIN*Math.cbrt(Wp);
+  let rMax = radiusWhere(R => blast(Wp,Wi,R).Pso/KPA_PER_PSI, 0.2);
+  if (!isFinite(rMax)) rMax = 198*Math.cbrt(Wp);
+  const k0 = density*Math.PI*r0*r0;
+  const out = {killed:k0, serious:k0, minor:k0, area:Math.PI*rMax*rMax, rMax};
+  const N = 400, la = Math.log(r0), lb = Math.log(rMax);
+  for (let k=0;k<N;k++){
+    const r1 = Math.exp(la + (lb-la)*k/N), r2 = Math.exp(la + (lb-la)*(k+1)/N), rm = Math.sqrt(r1*r2);
+    const pp = peopleAt(blast(Wp,Wi,rm), model, 'open', null, rm, Wp);
+    const dA = Math.PI*(r2*r2 - r1*r1)*density;
+    out.killed += pp.killed*dA; out.serious += pp.serious*dA; out.minor += pp.minor*dA;
+  }
+  return out;
+}
+
+const pct = x => x >= 0.995 ? '>99%' : (x < 0.005 && x > 0) ? '<1%' : Math.round(x*100) + '%';
+const cnt = x => x < 0.5 ? (x > 0.05 ? '<1' : '0') : Math.round(x).toLocaleString();
+function stackBar(label, sub, parts, colors, right){
+  return `<div class="bar"><div class="bl">${label}${sub?`<small>${sub}</small>`:''}</div>
+    <div class="tr">${parts.map((p,k) => p > 0.0005 ? `<span style="width:${(p*100).toFixed(2)}%;background:var(${colors[k]})" title="${pct(p)}"></span>` : '').join('')}</div>
+    <div class="bv">${right}</div></div>`;
+}
+const simpleBar = (label, sub, p, colorVar, right) => stackBar(label, sub, [p], [colorVar], right ?? pct(p));
+const DS = ['None','Light','Moderate','Severe','Destroyed'], DC = ['--d0','--d1','--d2','--d3','--d4'];
+
+function initAssessUI(){
+  $('asExpl').innerHTML = ['MIL','COM','HME','CUS'].map(c => {
+    const items = lib.filter(x => (x.cat||'CUS') === c);
+    return items.length ? `<optgroup label="${CAT_LABEL[c]}">${items.map(x => `<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('')}</optgroup>` : '';
+  }).join('');
+  if (!libById(st.as.expl)) st.as.expl = 'tnt';
+  if (!BUILDINGS.find(x => x.id === st.as.bld)) st.as.bld = 'brick';
+  $('asExpl').value = st.as.expl;
+  $('asBld').innerHTML = BUILDINGS.map(b => `<option value="${b.id}">${esc(b.name)}</option>`).join('');
+  $('asBld').value = st.as.bld; $('asExp').value = st.as.exposure; $('asModel').value = st.as.model; $('asWin').value = st.as.win;
+  $('asN').value = st.as.N; $('asDen').value = st.as.den; $('asCons').checked = !!st.as.cons;
+  $('asMassU').textContent = mU();
+  syncAsInputs();
+}
+function syncAsInputs(except){
+  if (except !== 'asMassN') $('asMassN').value = nice(mOut(st.as.mass));
+  if (except !== 'asMass') $('asMass').value = toSlider(st.as.mass, MASS_MIN, MASS_MAX);
+  if (except !== 'asRN') $('asRN').value = nice(dOut(st.as.R));
+  if (except !== 'asR') $('asR').value = toSlider(st.as.R, R_MIN, R_MAX);
+}
+function bldState(x, b, R, W){ // {parts, ex, label}
+  if (x.iatg){ const q = brickParts(R, W); return {...q, label: q.cat ? `Category ${q.cat.c}: ${q.cat.d}` : 'Beyond category D: no significant damage'}; }
+  const q = bldProbs(x, b.Pso/KPA_PER_PSI), top = q.parts.indexOf(Math.max(...q.parts));
+  return {...q, label: top === 0 ? 'Most likely undamaged' : 'Most likely: ' + x.st[top-1]};
+}
+
+function renderAssess(){
+  const {e, p, i} = asFactors();
+  const {Wp, Wi} = asW();
+  const R = st.as.R, b = blast(Wp, Wi, R);
+  const psi = b.Pso/KPA_PER_PSI, psiR = b.Pr/KPA_PER_PSI;
+  const bld = BUILDINGS.find(x => x.id === st.as.bld) || BUILDINGS[0];
+  const win = st.as.win || 'medium';
+  $('asExplMeta').innerHTML = `${e.cat==='HME'?'<span class="tag hme">HME – indicative</span> ':''}TNT factor P×${p} / I×${i}${e.lo!=null?` (range ${e.lo}–${e.hi})`:''} → <b>${sig(mOut(Wp))} ${mU()} TNT</b>${st.burst==='free'?' (free-air ÷1.8)':''}`;
+
+  const N = Math.max(0, +st.as.N || 0);
+  const pp = peopleAt(b, st.as.model, st.as.exposure, bld, R, Wp, win);
+  const bs = isNaN(psi) ? null : bldState(bld, b, R, Wp);
+  const topIdx = bs ? bs.parts.indexOf(Math.max(...bs.parts)) : 4;
+  const where = {open:'in the open', wall:'next to a wall', inside:'inside'}[st.as.exposure];
+  $('asKpi').innerHTML = b.tooClose
+    ? `<div class="warn" style="grid-column:1/-1">The target is inside the fireball (Z = ${b.Zp.toFixed(3)} m/kg<sup>1/3</sup>). Assume total destruction and 100% fatality.</div>`
+    : `<div class="kpi"><div class="l">Incident overpressure</div><div class="v ${band(psi)}">${sig(psi)} psi</div><div class="dim">${sig(b.Pso)} kPa${b.ext?' · extended range':''}</div></div>
+       <div class="kpi"><div class="l">Reflected / dynamic</div><div class="v">${sig(psiR)} psi</div><div class="dim">dynamic ${sig(qDyn(b.Pso)/KPA_PER_PSI)} psi</div></div>
+       <div class="kpi"><div class="l">Impulse · duration</div><div class="v">${sig(b.is)}</div><div class="dim">kPa·ms · ${isNaN(b.td)?'—':sig(b.td)+' ms'}</div></div>
+       <div class="kpi"><div class="l">${esc(bld.name)}</div><div class="v" style="color:var(${DC[topIdx]})">${bld.iatg && bs.cat ? 'Cat. ' + bs.cat.c + ' – ' : ''}${DS[topIdx]}</div><div class="dim">${bld.iatg?'IATG damage category':'most likely damage state'}</div></div>
+       <div class="kpi"><div class="l">Of ${N} people ${where}</div><div class="v" style="color:var(--k)">${cnt(N*pp.killed)} killed</div><div class="dim">${cnt(N*(pp.serious-pp.killed))} serious · ${cnt(N*(pp.minor-pp.serious))} minor</div></div>`;
+  if (b.tooClose){ ['asBldBars','asLop','asBrick','asPplStack','asPplBars','asGauge'].forEach(id => $(id).innerHTML = ''); renderRings(Wp, Wi, bld); return; }
+
+  // ---- Buildings ----
+  let h = BUILDINGS.map(x => {
+    const q = bldState(x, b, R, Wp), sel = x.id === bld.id;
+    return stackBar(sel ? `<b>${esc(x.name)}</b>` : esc(x.name), esc(q.label), q.parts, DC, x.iatg ? (q.cat ? 'Cat. ' + q.cat.c : 'none') : `${pct(q.ex[0])} dmg`);
+  }).join('');
+  h += Object.entries(WIN).map(([k, w]) => {
+    const br = windowBreak(b.Pso, b.is, k);
+    return stackBar(`Windows – ${w.n}`, 'IATG Swiss P-I model (Table 43/44)', [br, 1-br], ['--blue','--d0'], `${pct(br)} broken`);
+  }).join('');
+  $('asBldBars').innerHTML = h;
+  const lop = bld.iatg ? LOP[bs.cat ? bs.cat.s : 0] : LOP[topIdx];
+  $('asLop').innerHTML = `<div><b>${esc(bld.name)} – ${lop[0]}:</b> ${lop[1]}</div>` +
+    (bld.iatg ? '' : `<div>Light or worse ${pct(bs.ex[0])} · Moderate or worse ${pct(bs.ex[1])} · Severe or worse ${pct(bs.ex[2])} · Collapse ${pct(bs.ex[3])}</div>`) +
+    (Wp < 3000 && !isNaN(b.td) ? `<div class="warn"><b>Small-charge caution:</b> the positive phase lasts only ${sig(b.td)} ms. The FEMA and spreadsheet psi thresholds come from long-duration blasts, so they overstate structural damage from small charges. The IATG brick-house model allows for charge size and puts this point in ${(() => { const c = scillyCat(R, Wp); return c ? 'category ' + c.c : 'no damage category'; })()}. For structures, give more weight to the IATG result. Glass and injury predictions are less affected.</div>` : '');
+
+  // Brick-house damage zones strip (IATG Table 41/42)
+  const rs = SCILLY.map(x => scillyR(x.K, Wp)), stripMax = Math.max(rs[4]*1.15, R*1.05);
+  const sx = r => Math.min(100, 100*r/stripMax);
+  let prev = 0;
+  const segCols = ['--d4','--d3','--d2','--d1','--d1'];
+  $('asBrick').innerHTML = `<div class="gauge" style="height:30px">${SCILLY.map((x,k) => { const w = sx(rs[k]) - sx(prev); prev = rs[k];
+      return `<span style="width:${w}%;background:var(${segCols[k]});opacity:${k===4?.5:.9};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff">${w>4?x.c:''}</span>`; }).join('')}
+      <span style="flex:1;background:var(--d0);opacity:.5"></span>
+      <div class="mk" style="left:calc(${sx(R)}% - 1px)"></div></div>
+    <div class="gscale">${SCILLY.map((x,k) => `<b style="left:${sx(rs[k])}%">${sig(dOut(rs[k]))}</b>`).join('')}</div>
+    <div class="foot">Brick-house damage zones for ${sig(mOut(Wp))} ${mU()} TNT (${dU()}): A demolished · B beyond repair · Cb/Ca uninhabitable · D habitable with repairs. The marker shows the target.</div>`;
+
+  // ---- People ----
+  const pc = ['--k','--sv','--mn','--ok'];
+  const models = [st.as.model, ...['iatg','sheet','ufc'].filter(m => m !== st.as.model)];
+  $('asPplStack').innerHTML = models.map((m, k) => {
+    const q = k === 0 ? pp : peopleAt(b, m, st.as.exposure, bld, R, Wp, win);
+    return stackBar(k === 0 ? `<b>${MODEL_NAME[m]}</b>` : MODEL_NAME[m], k === 0 ? `Selected model · person ${where}` : 'For comparison',
+      [q.killed, q.serious-q.killed, q.minor-q.serious, 1-q.minor], pc, `${pct(q.killed)} killed`);
+  }).join('');
+  const ef = pp.eff, n = x => N ? ` · ${cnt(N*x)}` : '';
+  const primLbl = {iatg:'IATG Table 50 lung lethality', sheet:'Eisenberg (sheet 14.5–29 psi)', ufc:'UFC: 100 / 130 / 200 psi'}[st.as.model];
+  const earLbl = {iatg:'TNO probit, 50% ≈ 15 psi', sheet:'Eisenberg (sheet 2.4–12.2 psi)', ufc:'UFC: 5 psi threshold, 15 psi 50%'}[st.as.model];
+  const rows = [
+    ['Eardrum rupture', earLbl, ef.ear, '--mn'],
+    ['Lung damage', 'UFC: 30 psi threshold, 80 psi 50%', ef.lung, '--sv'],
+    ['Primary blast lethality', primLbl, ef.fat, '--k'],
+  ];
+  if (st.as.exposure === 'inside'){
+    rows.push(['Windows broken', `IATG P-I model, ${WIN[win].n}`, ef.glassBreak, '--blue']);
+    rows.push(['Glass injury – minor', 'IATG Table 46', ef.glassMinor, '--mn']);
+    rows.push(['Glass injury – major', 'IATG Table 46', ef.glassMajor, '--sv']);
+    rows.push(['Killed by glass', 'IATG Table 46', ef.glassLeth, '--k']);
+    rows.push(['Killed or seriously injured by the building', bld.iatg ? `IATG Table 54, category ${ef.cat}` : 'IATG Table 54 × FEMA fragility', ef.bksi, '--sv']);
+    rows.push(['Killed by the building', bld.iatg ? `IATG Table 54, category ${ef.cat}` : 'IATG Table 54 × FEMA fragility', ef.bk, '--k']);
+  } else {
+    rows.push(['Light fragment injuries', 'Sheet: from ~1 psi, 50% at 1.5 psi', ef.light, '--mn']);
+    rows.push(['Lacerations: flying glass/debris', 'Sheet: 2 injured · 3 serious · 5 universal', ef.lac, '--sv']);
+    rows.push(['Killed by head impact', 'TNO: thrown against objects', ef.head, '--k']);
+    rows.push(['Killed by body displacement', 'TNO: whole body thrown', ef.body, '--k']);
+  }
+  $('asPplBars').innerHTML = rows.map(([l,s,v,c]) => simpleBar(l, s, v, c, pct(v) + n(v))).join('');
+
+  // ---- Gauge ----
+  const gLo = Math.log10(0.04), gHi = Math.log10(300), gx = v => 100*(Math.log10(v)-gLo)/(gHi-gLo);
+  const segs = [[0.04,1,'--green'],[1,st.bandB,'--green'],[st.bandB,st.bandR,'--blue'],[st.bandR,14.5,'--red'],[14.5,300,'--d4']];
+  $('asGauge').innerHTML = `<div class="gauge">${segs.map(([a,c2,col]) => `<span style="width:${gx(c2)-gx(a)}%;background:var(${col});opacity:${a<1?.45:.85}"></span>`).join('')}
+      <div class="mk" style="left:calc(${Math.min(100,Math.max(0,gx(psi)))}% - 1px)" title="${sig(psi)} psi"></div></div>
+    <div class="gscale">${[0.1,0.5,1,2,3,5,10,15,30,100,200].map(v => `<b style="left:${gx(v)}%">${v}</b>`).join('')}</div>`;
+
+  let t1 = `<thead><tr><th>psi</th><th class="l">Your spreadsheet: buildings</th><th class="l">Human body</th></tr></thead><tbody>`;
+  for (const d of DAMAGE){
+    const hit = d.t2 != null ? (psi >= d.t && psi <= d.t2) : psi >= d.t;
+    t1 += `<tr class="${hit?'hit':'miss'}"><td class="${band(d.t)}" style="text-align:left">${d.t2 != null ? `${d.t}–${d.t2}` : d.t}</td><td class="l wrap">${esc(d.txt)}</td><td class="l wrap">${esc(d.hum||'')}</td></tr>`;
+  }
+  $('asSheetTbl').innerHTML = t1 + '</tbody>';
+  let t2 = `<thead><tr><th>psi</th><th class="l">FEMA 426 Table 4-1: damage</th></tr></thead><tbody>`;
+  for (const f of FEMA_T41){
+    const hit = psi >= f.lo;
+    t2 += `<tr class="${hit?'hit':'miss'}"><td class="${band(f.lo)}" style="text-align:left">${f.hi?`${f.lo}–${f.hi}`:`> ${f.lo}`}</td><td class="l wrap">${esc(f.txt)}${hit && f.hi && psi < f.hi ? ' <i>(within range: partial)</i>' : ''}</td></tr>`;
+  }
+  $('asFemaTbl').innerHTML = t2 + '</tbody>';
+
+  renderRings(Wp, Wi, bld);
+
+  // ---- Crowd ----
+  const den = Math.max(0, +st.as.den || 0);
+  const ce = crowdEstimate(Wp, Wi, den, st.as.model);
+  const alts = models.slice(1).map(m => [m, crowdEstimate(Wp, Wi, den, m)]);
+  const mx = Math.max(ce.minor, 1);
+  $('asCrowd').innerHTML =
+    simpleBar('Killed', MODEL_NAME[st.as.model], ce.killed/mx, '--k', cnt(ce.killed)) +
+    simpleBar('Seriously injured', '', (ce.serious-ce.killed)/mx, '--sv', cnt(ce.serious-ce.killed)) +
+    simpleBar('Minor / eardrum', '', (ce.minor-ce.serious)/mx, '--mn', cnt(ce.minor-ce.serious)) +
+    alts.map(([m, c]) => simpleBar('Killed', MODEL_NAME[m] + ' (comparison)', Math.min(1, c.killed/mx), '--k', cnt(c.killed))).join('');
+  $('asCrowdNote').textContent = `${den} people/m² spread evenly out to ${sig(dOut(ce.rMax))} ${dU()} (where pressure drops to 0.2 psi), about ${cnt(den*ce.area)} people in total. Assumes everyone is standing in the open with no shielding and no fragmentation.`;
+}
+
+function renderRings(Wp, Wi, bld){
+  const m = st.as.model;
+  const P = R => peopleAt(blast(Wp, Wi, R), m, 'open', null, R, Wp);
+  const psiAt = R => { const b = blast(Wp, Wi, R); return b.tooClose ? 1e6 : b.Pso/KPA_PER_PSI; };
+  const rings = [
+    ['Fireball / inside KB range limit', Z_MIN*Math.cbrt(Wp), '--d4'],
+    ['50% killed (people in open)', radiusWhere(R => P(R).killed, 0.5), '--k'],
+    ['1% killed (people in open)', radiusWhere(R => P(R).killed, 0.01), '--k'],
+    ['50% seriously injured', radiusWhere(R => P(R).serious, 0.5), '--sv'],
+    ...(bld.iatg
+      ? [['Brick houses demolished (Cat. A)', scillyR(4.8, Wp), '--d4'], ['Brick houses beyond repair (Cat. B)', scillyR(7.1, Wp), '--d3'], ['Brick houses uninhabitable (Cat. Ca)', scillyR(21.3, Wp), '--d2']]
+      : [[`${bld.name}: 50% collapse`, radiusWhere(R => bldProbs(bld, psiAt(R)).ex[3], 0.5), '--d4'], [`${bld.name}: 50% severe damage`, radiusWhere(R => bldProbs(bld, psiAt(R)).ex[2], 0.5), '--d3']]),
+    ['50% minor injury / eardrum', radiusWhere(R => P(R).minor, 0.5), '--mn'],
+    [`50% windows broken (${WIN[st.as.win||'medium'].n})`, radiusWhere(R => { const b = blast(Wp, Wi, R); return b.tooClose ? 1 : windowBreak(b.Pso, b.is, st.as.win||'medium'); }, 0.5), '--blue'],
+  ];
+  const valid = rings.filter(r => isFinite(r[1]) && r[1] > 0);
+  const maxR = Math.max(st.as.R*1.08, ...valid.map(r => r[1]));
+  const C = 260, S = 240/maxR;
+  let g = `<circle cx="${C}" cy="${C}" r="248" fill="none" stroke="var(--line)"/>`;
+  [...valid].sort((a,b) => b[1]-a[1]).forEach(([l, r, c]) => {
+    g += `<circle cx="${C}" cy="${C}" r="${Math.max(2, r*S)}" fill="var(${c})" fill-opacity=".10" stroke="var(${c})" stroke-width="2"/>`;
+  });
+  const step = Math.pow(10, Math.floor(Math.log10(dOut(maxR)/2)));
+  const sb = [1,2,5].map(k => k*step).filter(v => v <= dOut(maxR)/1.5).pop() || step;
+  g += `<line x1="16" y1="505" x2="${16 + dIn(sb)*S}" y2="505" stroke="var(--ink)" stroke-width="3"/><text x="16" y="497">${sb} ${dU()}</text>`;
+  const tx = C + st.as.R*S;
+  g += `<line x1="${C}" y1="${C}" x2="${tx}" y2="${C}" stroke="var(--ink)" stroke-dasharray="4 3"/>`;
+  g += `<circle cx="${C}" cy="${C}" r="4" fill="var(--ink)"/><text x="${C+6}" y="${C-8}">Charge</text>`;
+  g += `<rect x="${tx-6}" y="${C-6}" width="12" height="12" fill="var(--accent)" stroke="var(--panel)" stroke-width="2"/>`;
+  g += `<text x="${Math.min(Math.max(tx, 60), 460)}" y="${C+22}" text-anchor="middle" style="font-weight:700">Target ${sig(dOut(st.as.R))} ${dU()}</text>`;
+  $('rings').innerHTML = g;
+  $('ringLeg').innerHTML = rings.map(([l, r, c]) => `<div><i style="border-color:var(${c})"></i><span>${esc(l)}</span><span>${isFinite(r) ? sig(dOut(r)) + ' ' + dU() : (r === Infinity ? 'beyond range' : 'not reached')}</span></div>`).join('');
+}
+
+// assessment events
+const asSet = (k, v) => { st.as[k] = v; save(); renderAssess(); };
+$('asExpl').onchange = e => asSet('expl', e.target.value);
+$('asBld').onchange = e => asSet('bld', e.target.value);
+$('asExp').onchange = e => asSet('exposure', e.target.value);
+$('asModel').onchange = e => asSet('model', e.target.value);
+$('asWin').onchange = e => asSet('win', e.target.value);
+$('asCons').onchange = e => asSet('cons', e.target.checked);
+$('asN').oninput = e => asSet('N', parseFloat(e.target.value) || 0);
+$('asDen').oninput = e => asSet('den', parseFloat(e.target.value) || 0);
+document.querySelectorAll('[data-den]').forEach(bn => bn.onclick = () => { $('asDen').value = bn.dataset.den; asSet('den', +bn.dataset.den); });
+$('asMass').oninput = e => { st.as.mass = nice(fromSlider(+e.target.value, MASS_MIN, MASS_MAX)); syncAsInputs('asMass'); save(); renderAssess(); };
+$('asMassN').oninput = e => { const v = parseFloat(e.target.value); if (v > 0){ st.as.mass = mIn(v); syncAsInputs('asMassN'); save(); renderAssess(); } };
+$('asR').oninput = e => { st.as.R = nice(fromSlider(+e.target.value, R_MIN, R_MAX)); syncAsInputs('asR'); save(); renderAssess(); };
+$('asRN').oninput = e => { const v = parseFloat(e.target.value); if (v > 0){ st.as.R = dIn(v); syncAsInputs('asRN'); save(); renderAssess(); } };
+
 // expose engine for testing / console use
-window.BlastKB = {blast, standoff, kbEval, psoZ};
+window.BlastKB = {blast, standoff, kbEval, psoZ, peopleAt, bldProbs, crowdEstimate, BUILDINGS};
 renderAll();
 </script>
 </body>
