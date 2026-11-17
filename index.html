@@ -33,7 +33,12 @@ header{padding:14px 16px;border-bottom:1px solid var(--line);background:var(--pa
 header h1{font-size:18px;margin:0}
 header .sub{color:var(--muted);font-size:12px}
 header .spacer{flex:1}
-main{max-width:1400px;margin:0 auto;padding:16px;display:grid;gap:16px}
+.navlink{color:var(--accent);font-weight:600;text-decoration:none;padding:5px 8px;border:1px solid var(--line);border-radius:5px;background:var(--head)}
+.navlink:hover{border-color:var(--accent)}
+.ver{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+@media print{.ver{display:inline!important}}
+main{max-width:1440px;margin:0 auto;padding:16px;display:grid;gap:16px;grid-template-columns:minmax(0,1fr)}
+main > *{min-width:0}
 section.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;min-width:0}
 section.card h2{font-size:15px;margin:0 0 10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 section.card h2 .hint{font-weight:400;color:var(--muted);font-size:12px}
@@ -76,7 +81,7 @@ td.wrap{white-space:normal}
 .probe dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
 .effects{font-size:12px;display:grid;gap:4px;margin-top:6px}
 .effects div{padding:4px 6px;border-radius:4px;background:var(--head)}
-#chart{width:100%;height:auto;display:block}
+#chart{width:100%;display:block}
 #chart text{fill:var(--muted);font-size:11px}
 .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;margin-top:6px}
 .legend span::before{content:"";display:inline-block;width:14px;height:3px;background:var(--c);vertical-align:middle;margin-right:5px}
@@ -99,8 +104,9 @@ details summary{cursor:pointer;font-weight:600}
 .kpi{border:1px solid var(--line);border-radius:6px;padding:8px 10px}
 .kpi .v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
 .kpi .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
-.as-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px}
-@media (max-width:1000px){.as-grid{grid-template-columns:1fr}}
+.as-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;grid-template-areas:"bld" "ppl" "zone"}
+.c-bld{grid-area:bld;min-width:0}.c-ppl{grid-area:ppl;min-width:0}.c-zone{grid-area:zone;min-width:0}
+
 .as-grid h3{font-size:14px;margin:4px 0 8px}
 .bars{display:grid;gap:7px}
 .bar{display:grid;grid-template-columns:minmax(100px,190px) minmax(40px,1fr) 84px;gap:8px;align-items:center;font-size:12px}
@@ -124,6 +130,54 @@ tr.miss td{opacity:.45}
 .ringleg div{display:flex;gap:8px;align-items:center}
 .ringleg i{width:14px;height:14px;border-radius:50%;border:3px solid;flex:none}
 .ringleg span:last-child{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:600}
+/* ---------- Responsive layout: text size never changes, only the use of width ---------- */
+/* Tablet / small laptop */
+@media (min-width:1000px){
+  .as-grid{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);grid-template-areas:"bld zone" "ppl zone"}
+}
+/* 1080p class (1600–2199 CSS px): fill the screen, 3-column assessment, probe beside chart */
+@media (min-width:1600px){
+  main{max-width:none;padding:20px 28px}
+  header{padding:14px 28px}
+  .as-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,.9fr);grid-template-areas:"bld ppl zone"}
+  main{grid-template-columns:minmax(0,5fr) minmax(0,7fr)}
+  #assess,.sec-scen,.sec-range,.sec-lib,.sec-ref,.sec-method{grid-column:1/-1}
+  .sec-probe .probe-grid{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+}
+/* 1440p / 4K at 150% (2200+ CSS px) */
+@media (min-width:2200px){
+  main{padding:24px 40px;gap:20px}
+  header{padding:16px 40px}
+  .as-in{grid-template-columns:repeat(5,minmax(0,1fr))}
+  .as-head{grid-template-columns:repeat(5,minmax(0,1fr))}
+  #assess > .two{grid-template-columns:1fr 1fr}
+}
+/* 4K at 100% (3000+ CSS px): reference tables beside range tables */
+@media (min-width:3000px){
+  main{grid-template-columns:repeat(4,minmax(0,1fr));padding:28px 56px;grid-auto-flow:row dense}
+  #assess,.sec-scen,.sec-lib,.sec-method{grid-column:1/-1}
+  .sec-probe{grid-column:1/2}.sec-chart{grid-column:2/5}
+  .sec-range{grid-column:1/3}.sec-ref{grid-column:3/5}
+  .sec-range,.sec-ref{grid-template-columns:1fr}
+  .as-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,.8fr)}
+  .scen-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+/* Phones */
+@media (max-width:640px){
+  main{padding:12px 16px;gap:12px}
+  header{padding:12px 16px}
+  header .sub{display:none}
+  section.card{padding:12px}
+  .bar{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"l v" "t t";row-gap:3px}
+  .bar .bl{grid-area:l}.bar .bv{grid-area:v}.bar .tr{grid-area:t}
+  .as-head{grid-template-columns:1fr 1fr}
+  .as-head .kpi:last-child{grid-column:1/-1}
+  .kpi .v{font-size:20px}
+  .gscale b.minor{display:none}
+  .scen-grid,.probe-grid{grid-template-columns:minmax(0,1fr)}
+  .row > label{flex:1 1 100%}
+  #rings{max-width:100%}
+}
 </style>
 </head>
 <body>
@@ -136,6 +190,8 @@ tr.miss td{opacity:.45}
   <div class="seg noprint" title="Display units">
     <button id="u-si" class="on">Metric</button><button id="u-imp">Imperial</button>
   </div>
+  <span class="ver" id="appVer" title="Version · commit · build time"></span>
+  <a class="noprint navlink" href="verification.html">References &amp; verification</a>
   <button class="noprint" onclick="window.print()">Print</button>
   <button class="noprint" id="themeBtn" title="Toggle theme">◐</button>
 </header>
@@ -184,7 +240,7 @@ tr.miss td{opacity:.45}
     <div class="as-head" id="asKpi"></div>
 
     <div class="as-grid">
-      <div>
+      <div class="c-bld">
         <h3>Buildings: damage at this distance <span class="dim" style="font-weight:400">(IATG 01.80 §6.2 + FEMA 426 Table 4-1)</span></h3>
         <div class="stackleg">
           <span><i style="background:var(--d0)"></i>None</span><span><i style="background:var(--d1)"></i>Light</span><span><i style="background:var(--d2)"></i>Moderate</span><span><i style="background:var(--d3)"></i>Severe</span><span><i style="background:var(--d4)"></i>Destroyed / collapse</span>
@@ -192,15 +248,16 @@ tr.miss td{opacity:.45}
         <div class="bars" id="asBldBars"></div>
         <div class="effects" id="asLop" style="margin-top:10px"></div>
         <div id="asBrick" style="margin-top:10px"></div>
-
-        <h3 style="margin-top:16px">People: outcome at this distance</h3>
+      </div>
+      <div class="c-ppl">
+        <h3>People: outcome at this distance</h3>
         <div class="stackleg">
           <span><i style="background:var(--k)"></i>Killed</span><span><i style="background:var(--sv)"></i>Serious injury</span><span><i style="background:var(--mn)"></i>Minor injury / eardrum</span><span><i style="background:var(--ok)"></i>Uninjured</span>
         </div>
         <div class="bars" id="asPplStack"></div>
         <div class="bars" id="asPplBars" style="margin-top:10px"></div>
       </div>
-      <div>
+      <div class="c-zone">
         <h3>Hazard zones (plan view, to scale)</h3>
         <svg id="rings" viewBox="0 0 520 520" role="img" aria-label="Hazard zone rings"></svg>
         <div class="ringleg" id="ringLeg"></div>
@@ -234,7 +291,7 @@ tr.miss td{opacity:.45}
     </details>
   </section>
 
-  <section class="card">
+  <section class="card sec-scen">
     <h2>Scenarios <span class="hint">Compare up to 4 charges side by side. Sliders are logarithmic. Type exact values in the boxes.</span></h2>
     <div class="row noprint" style="margin-bottom:10px">
       <button class="primary" id="addScen">+ Add scenario</button>
@@ -249,7 +306,7 @@ tr.miss td{opacity:.45}
     <div class="scen-grid" id="scens"></div>
   </section>
 
-  <section class="card">
+  <section class="card sec-probe">
     <h2>Point check at distance <span class="hint">Every blast parameter at one stand-off distance</span></h2>
     <div class="row">
       <div class="field" style="flex:1;min-width:240px">
@@ -260,13 +317,13 @@ tr.miss td{opacity:.45}
     <div class="probe-grid" id="probe" style="margin-top:10px"></div>
   </section>
 
-  <section class="card">
+  <section class="card sec-chart">
     <h2>Overpressure vs distance <span class="hint">Incident (side-on) overpressure on log–log axes. The dashed line is the point-check distance.</span></h2>
     <svg id="chart" viewBox="0 0 900 420" role="img" aria-label="Overpressure versus distance chart"></svg>
     <div class="legend" id="legend"></div>
   </section>
 
-  <div class="two">
+  <div class="two sec-range">
     <section class="card">
       <h2>Range table <span class="hint">Same layout as your spreadsheet</span></h2>
       <div class="row noprint" style="margin-bottom:8px">
@@ -290,7 +347,7 @@ tr.miss td{opacity:.45}
     </section>
   </div>
 
-  <section class="card">
+  <section class="card sec-lib">
     <h2>Explosive library <span class="hint">TNT-equivalent factors. Edit any value. Changes are saved in this browser.</span></h2>
     <div class="warn" style="margin-bottom:10px">
       <b>Check these factors before relying on them.</b> Entries marked “AASTP-1 T5-2” are the IATG 01.80 Table 10 values for peak pressure and impulse. Entries marked “IATG T11” are heat-of-detonation equivalents (UFC 3-340-02). HME values are <b>indicative only</b>. Real performance varies widely with purity, density, mixing, particle size, confinement and charge size. For stand-off planning, use the upper end of the range. Check every factor against your organisation’s reference (AASTP-1 / IATG 01.80).
@@ -302,7 +359,7 @@ tr.miss td{opacity:.45}
     </div>
   </section>
 
-  <div class="two">
+  <div class="two sec-ref">
     <section class="card">
       <h2>Expected damage / effects by overpressure</h2>
       <div class="tbl-wrap"><table id="dmgTbl"></table></div>
@@ -324,7 +381,7 @@ tr.miss td{opacity:.45}
     </section>
   </div>
 
-  <section class="card foot">
+  <section class="card foot sec-method">
     <details>
       <summary>Method, validity and limitations</summary>
       <ul>
@@ -342,6 +399,7 @@ tr.miss td{opacity:.45}
 
 <script>
 "use strict";
+const APP_VERSION = '1.3.0'; // keep in sync with VERSION (the build fails if they differ)
 /* ================= Kingery-Bulmash engine (hemispherical surface burst, SI) ================= */
 // Each entry: [Zmin, Zmax, C0, C1, [K0..Kn]]  -> U = C0 + C1*log10(Z); log10(Y) = sum Ki U^i
 const KB = {
@@ -738,7 +796,9 @@ function renderLegend(){
 }
 
 function renderChart(){
-  const W = 900, H = 420, m = {l:58, r:16, t:12, b:40};
+  const svgEl = $('chart'), cw = Math.round(svgEl.clientWidth || 900);
+  const W = Math.max(300, cw), H = W < 600 ? 300 : W > 1600 ? 520 : 420, m = {l:58, r:16, t:12, b:40};
+  svgEl.setAttribute('viewBox', `0 0 ${W} ${H}`); svgEl.style.height = H + 'px';
   const pw = W - m.l - m.r, ph = H - m.t - m.b;
   // distance domain (display units)
   const maxW = Math.max(...st.scens.map(s => effW(s).Wp));
@@ -1213,7 +1273,7 @@ function renderAssess(){
   const segs = [[0.04,1,'--green'],[1,st.bandB,'--green'],[st.bandB,st.bandR,'--blue'],[st.bandR,14.5,'--red'],[14.5,300,'--d4']];
   $('asGauge').innerHTML = `<div class="gauge">${segs.map(([a,c2,col]) => `<span style="width:${gx(c2)-gx(a)}%;background:var(${col});opacity:${a<1?.45:.85}"></span>`).join('')}
       <div class="mk" style="left:calc(${Math.min(100,Math.max(0,gx(psi)))}% - 1px)" title="${sig(psi)} psi"></div></div>
-    <div class="gscale">${[0.1,0.5,1,2,3,5,10,15,30,100,200].map(v => `<b style="left:${gx(v)}%">${v}</b>`).join('')}</div>`;
+    <div class="gscale">${[0.1,0.5,1,2,3,5,10,15,30,100,200].map(v => `<b class="${[0.1,1,3,10,30,100].includes(v)?'':'minor'}" style="left:${gx(v)}%">${v}</b>`).join('')}</div>`;
 
   let t1 = `<thead><tr><th>psi</th><th class="l">Your spreadsheet: buildings</th><th class="l">Human body</th></tr></thead><tbody>`;
   for (const d of DAMAGE){
@@ -1294,8 +1354,20 @@ $('asR').oninput = e => { st.as.R = nice(fromSlider(+e.target.value, R_MIN, R_MA
 $('asRN').oninput = e => { const v = parseFloat(e.target.value); if (v > 0){ st.as.R = dIn(v); syncAsInputs('asRN'); save(); renderAssess(); } };
 
 // expose engine for testing / console use
-window.BlastKB = {blast, standoff, kbEval, psoZ, peopleAt, bldProbs, crowdEstimate, BUILDINGS};
+let _rz; window.addEventListener('resize', () => { clearTimeout(_rz); _rz = setTimeout(renderChart, 120); });
+window.BlastKB = {blast, standoff, kbEval, psoZ, peopleAt, bldProbs, crowdEstimate, BUILDINGS,
+  KB, Z_MIN, Z_MAX, P0, A0, KPA_PER_PSI, qDyn, reflectRH, tnoLung, windowBreak, WIN, glassInjury, scillyR, scillyCat, SCILLY,
+  DEFAULT_LIB, DAMAGE, INJURY, FEMA_T41, logn, probit, Phi};
 renderAll();
+(async () => {
+  const el = $('appVer');
+  el.textContent = 'v' + APP_VERSION;
+  try {
+    const v = await (await fetch('version.json', {cache:'no-store'})).json();
+    el.textContent = `v${v.version} · ${String(v.commit||'').slice(0,7)} · ${new Date(v.builtAt).toLocaleString([], {dateStyle:'medium', timeStyle:'short'})}`;
+    el.title = `Version ${v.version}\nCommit ${v.commit}\nBranch ${v.branch}\nBuilt ${v.builtAt}\n${v.message||''}`;
+  } catch(e){}
+})();
 </script>
 </body>
 </html>

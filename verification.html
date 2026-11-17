@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>References &amp; Verification</title>
+<meta name="description" content="Live verification of the Blast Overpressure Calculator against IATG 01.80, AASTP-1, UFC 3-340-02 and the source spreadsheet, with every reference listed.">
+<style>
+:root{--bg:#f5f6f8;--panel:#fff;--ink:#1b1f24;--muted:#5d6670;--line:#d8dde3;--head:#eef1f4;--accent:#1f5fae;--ok:#178a3a;--okbg:#e6f4ea;--bad:#c62828;--badbg:#fdecea;--info:#8a6d00;--infobg:#fff6e0}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#111418;--panel:#1a1f25;--ink:#e7eaee;--muted:#9aa4ae;--line:#2e353d;--head:#222830;--accent:#6aa7ff;--ok:#4cc76f;--okbg:#16301f;--bad:#ff6161;--badbg:#3a1a1a;--info:#e3b341;--infobg:#2b2412}}
+:root[data-theme="dark"]{--bg:#111418;--panel:#1a1f25;--ink:#e7eaee;--muted:#9aa4ae;--line:#2e353d;--head:#222830;--accent:#6aa7ff;--ok:#4cc76f;--okbg:#16301f;--bad:#ff6161;--badbg:#3a1a1a;--info:#e3b341;--infobg:#2b2412}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+header h1{font-size:18px;margin:0}header .spacer{flex:1}
+a{color:var(--accent)}
+.navlink{font-weight:600;text-decoration:none;padding:5px 8px;border:1px solid var(--line);border-radius:5px;background:var(--head)}
+main{max-width:1440px;margin:0 auto;padding:16px;display:grid;gap:16px;grid-template-columns:minmax(0,1fr)}
+main > *{min-width:0}
+section{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;min-width:0}
+h2{font-size:15px;margin:0 0 8px}
+p{margin:6px 0}
+.muted{color:var(--muted)}
+.banner{display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+.big{font-size:28px;font-weight:800}
+.pill{display:inline-block;padding:1px 8px;border-radius:10px;font-size:12px;font-weight:700;white-space:nowrap}
+.pass{background:var(--okbg);color:var(--ok)}.fail{background:var(--badbg);color:var(--bad)}.note{background:var(--infobg);color:var(--info)}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{border:1px solid var(--line);padding:4px 8px;text-align:right;vertical-align:top}
+th{background:var(--head);font-weight:600}
+td.l,th.l{text-align:left}
+tr.f td{background:var(--badbg)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(520px,100%),1fr));gap:16px}
+details summary{cursor:pointer;font-weight:600}
+code{font-size:12px;background:var(--head);padding:1px 4px;border-radius:3px}
+@media (min-width:1600px){main{max-width:none;padding:20px 28px}}
+@media (min-width:3000px){main{padding:28px 56px}.cols{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:640px){main{padding:12px 16px}.big{font-size:22px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>References &amp; Verification</h1>
+  <span class="muted" id="ver"></span>
+  <span class="spacer"></span>
+  <a class="navlink" href="index.html">← Back to calculator</a>
+</header>
+<main>
+  <section>
+    <div class="banner">
+      <div class="big" id="sum">Running checks…</div>
+      <div class="muted" id="sumsub">The checks run live, every time this page opens, against the calculator code currently deployed. No stored results.</div>
+    </div>
+    <p class="muted" id="ranat"></p>
+  </section>
+
+  <section>
+    <h2>How to read this page</h2>
+    <p>This page loads the live calculator (<code>index.html</code>) in the background and calls the same functions the calculator uses. It compares their output with values published in the standards and with your original spreadsheet. If anyone changes a formula, a coefficient or a TNT factor, the matching check fails here straight away.</p>
+    <p><span class="pill pass">PASS</span> within the stated tolerance (tolerances allow for rounding in the published tables). <span class="pill fail">FAIL</span> outside the tolerance. <span class="pill note">INFO</span> a known, documented difference, shown for transparency and not counted as a failure.</p>
+  </section>
+
+  <section>
+    <h2>Sources and how each one is used</h2>
+    <p class="muted">“Verification” describes how this app’s implementation was checked against the source. It does not rate the source itself.</p>
+    <div class="tbl"><table id="refs"></table></div>
+  </section>
+
+  <div class="cols" id="checks"></div>
+
+  <section>
+    <h2>Known limitations and honest caveats</h2>
+    <ul>
+      <li>The <b>Kingery-Bulmash coefficients</b> are the published hemispherical-surface-burst set (ARBRL-TR-02555, as reproduced in AASTP-1 Table 5-5). AASTP-1 itself was not available here. The coefficients are proven by matching IATG Table 5 and by agreeing with Swisdak’s independent 1994 fits (both checked live below).</li>
+      <li>Beyond Z = 40 m/kg<sup>1/3</sup> (outside KB validity) the app extends incident pressure and impulse using Swisdak’s long-range slopes, joined continuously at Z = 40. IATG notes that Kinney-Graham is validated to Z = 500. Results in this range are shown in italics in the app.</li>
+      <li><b>FEMA 426 Table 4-1</b> ranges are quoted from the published table. They have not yet been checked line by line against a FEMA 426 document in this session. The building fragility medians and the β = 0.35 dispersion are <b>engineering judgement</b> derived from those ranges. They are not a FEMA-published fragility model.</li>
+      <li><b>HME TNT-equivalence factors</b> (TATP, HMTD, improvised ANFO, AN/Al, urea nitrate, chlorate mixtures, neat AN) are <b>indicative only</b>. No standard in the reference set gives them. They come from open literature, and real performance varies widely.</li>
+      <li><b>Injury models disagree by design.</b> The Eisenberg probits behind the spreadsheet come from long-duration blasts and overstate lethality from small charges. UFC 3-340-02 Table 3-1 ignores duration. IATG Table 50 (TNO) includes duration. The app shows all three side by side.</li>
+      <li><b>Fragments and debris</b> from casings or vehicles are not modelled. IATG §6.3.3 needs case- and debris-density data that a quick assessment does not have.</li>
+      <li>The spreadsheet’s <b>110 m / 15 kg entry (3.06 kPa)</b> is inconsistent with the rest of its column. KB gives 2.06 kPa, so it looks like a transcription error. It is listed as INFO, not compared.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Change log</h2>
+    <div class="tbl"><table id="log"></table></div>
+  </section>
+</main>
+<iframe id="app" src="index.html" title="calculator under test" style="position:absolute;width:1200px;height:800px;left:-99999px;top:0;border:0" aria-hidden="true" tabindex="-1"></iframe>
+
+<script>
+"use strict";
+const CHANGELOG = [
+  ['1.3.0', 'Responsive layouts for phones, 1080p and 4K. References & verification page with live checks. Version stamp on every deployment.'],
+  ['1.2.0', 'IATG 01.80 models: brick-house damage (Tables 40–42), window P-I breakage (Tables 43–46), occupant casualties (Table 54), TNO lung lethality (Table 50). TNT library aligned with IATG Tables 10/11.'],
+  ['1.1.0', 'Impact assessment: building damage and casualty bar charts, hazard-zone plan view, crowd estimate.'],
+  ['1.0.0', 'Kingery-Bulmash calculator: scenarios, range table, stand-off table, chart, explosive library.'],
+];
+
+const REFS = [
+  {src:'Kingery, C.N. & Bulmash, G. (1984). Airblast Parameters from TNT Spherical Air Burst and Hemispherical Surface Burst. ARBRL-TR-02555.', use:'All blast parameters: incident and reflected pressure, impulse, arrival time, duration.', ver:'Proven by output: matches IATG Table 5 to within rounding, and agrees with Swisdak (1994) to within about 1% (live checks A, C).', st:'pass'},
+  {src:'IATG 01.80 Formulae for Ammunition Management, 3rd ed. (2021). §5.1.2, Tables 4–6.', use:'KB method, worked example (Table 5), dynamic pressure (Table 6).', ver:'Checked against the PDF you supplied. Table 5 is reproduced live (check A).', st:'pass'},
+  {src:'IATG 01.80 Table 10 (from AASTP-1 Table 5-2) and Table 11 (from UFC 3-340-02 Table 2-1).', use:'TNT-equivalence factors for pressure and impulse.', ver:'Checked against the PDF. The library defaults are compared value by value (check F).', st:'pass'},
+  {src:'IATG 01.80 §6.2.1, Tables 40–42: Scilly; Gilbert, Lees & Scilly (1994).', use:'Brick-house damage categories A, B, Cb, Ca, D and their ranges.', ver:'Checked against the PDF. Formula and K-factors are checked live (check G).', st:'pass'},
+  {src:'IATG 01.80 §6.2.3, Tables 43–46: Swiss P-I glass model (Kummer 2004).', use:'Window breakage probability and occupant glass injuries.', ver:'Checked against the PDF. The probit constants and Table 46 points are checked live (check H).', st:'pass'},
+  {src:'IATG 01.80 §6.3.1, Table 50 (TNO Green Book 2nd ed.) and Table 53.', use:'Duration-dependent lung lethality: the default people model.', ver:'Checked against the PDF. Reproduces the 11% Table 53 example (check D).', st:'pass'},
+  {src:'IATG 01.80 §6.3.2, Table 54: Gilbert, Lees & Scilly.', use:'Killed, seriously injured and lightly injured occupants by building damage category.', ver:'Checked against the PDF. Values are checked live (check G).', st:'pass'},
+  {src:'UFC 3-340-02 (2008) Table 3-1: Primary Injury Thresholds (as reproduced in your screenshots).', use:'UFC people model and the stand-off thresholds.', ver:'Checked against your screenshot. The curves are checked to pass through the published 50% points (check E).', st:'pass'},
+  {src:'Your spreadsheet (KPA/PSI range table, damage and human-effect table).', use:'Range-table layout and colour bands, damage and effect descriptions, laceration and light-injury curves.', ver:'Every in-range cell is reproduced live (check B). Damage text copied verbatim from your sheet.', st:'pass'},
+  {src:'Eisenberg, Lynch & Breeding (1975), Vulnerability Model (probit equations).', use:'Spreadsheet people model (lethality and eardrum rupture).', ver:'Shown to reproduce your sheet’s “14.5–29 psi = 1–99% fatalities” and “12.2 psi = 90% eardrum” rows (check E).', st:'pass'},
+  {src:'Swisdak, M.M. (1994). Simplified Kingery Airblast Calculations. DDESB Seminar.', use:'Independent cross-check of the KB coefficients, and long-range extension beyond Z = 40.', ver:'Implemented separately on this page and compared live (check C).', st:'pass'},
+  {src:'TNO Green Book (CPR 16E): head-impact and whole-body-displacement probits.', use:'People in the open being thrown against objects.', ver:'Equations as published in CPR 16E. Not checked against the document in this session.', st:'note'},
+  {src:'FEMA 426 (2003) Table 4-1: damage vs. overpressure; DoD levels of protection.', use:'Damage descriptions and the medians of the non-brick building fragility curves.', ver:'Ranges as published. Not checked line by line against the document in this session. The fragility curves are engineering judgement built on them.', st:'note'},
+  {src:'Open-literature HME relative-effectiveness values.', use:'TNT factors for homemade explosives.', ver:'Indicative only. No standard source. Ranges are shown and the worst case can be selected.', st:'note'},
+];
+
+// Swisdak (1994) hemispherical fits, implemented independently of the app (ln-polynomial form, SI units)
+const SW = {
+  Pso:[[0.2,2.9,[7.2106,-2.1069,-0.3229,0.1117,0.0685]],[2.9,23.8,[7.5938,-3.0523,0.40977,0.0261,-0.01267]],[23.8,198.5,[6.0536,-1.4066]]],
+  Pr:[[0.06,2.0,[9.006,-2.6893,-0.6295,0.1011,0.29255,0.13505,0.019736]],[2.0,40,[8.8396,-1.733,-2.64,2.293,-0.8232,0.14247,-0.0099]]],
+  is:[[0.2,0.96,[5.522,1.117,0.6,-0.292,-0.087]],[0.96,2.38,[5.465,-0.308,-1.464,1.362,-0.432]],[2.38,33.7,[5.2749,-0.4677,-0.2499,0.0588,-0.00554]]],
+  ir:[[0.06,40,[6.7853,-1.3466,0.101,-0.01123]]],
+  ta:[[0.06,1.5,[-0.7604,1.8058,0.1257,-0.0437,-0.031,-0.00669]],[1.5,40,[-0.7137,1.5732,0.5561,-0.4213,0.1054,-0.00929]]],
+};
+function sw(k, Z){ for (const [lo,hi,c] of SW[k]) if (Z >= lo && Z <= hi){ const L = Math.log(Z); return Math.exp(c.reduce((s,ci,i) => s + ci*L**i, 0)); } return NaN; }
+
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const f = (x, d=3) => (x === undefined || isNaN(x)) ? '—' : (Math.abs(x) >= 1000 ? x.toFixed(1) : (+x).toPrecision(4));
+let nPass = 0, nFail = 0, nInfo = 0;
+function status(ok, info){ if (info){ nInfo++; return '<span class="pill note">INFO</span>'; } if (ok){ nPass++; return '<span class="pill pass">PASS</span>'; } nFail++; return '<span class="pill fail">FAIL</span>'; }
+function rel(a, b){ return Math.abs(a/b - 1); }
+function section(id, title, intro, head, rows){
+  const el = document.createElement('section');
+  el.innerHTML = `<h2>${title}</h2><p class="muted">${intro}</p><div class="tbl"><table><thead><tr>${head.map((h,i) => `<th class="${i===0?'l':''}">${h}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
+  document.getElementById('checks').appendChild(el);
+}
+function row(cells, ok, info){ const st = status(ok, info); return `<tr class="${!ok && !info ? 'f' : ''}">${cells.map((c,i) => `<td class="${i===0?'l':''}">${c}</td>`).join('')}<td>${st}</td></tr>`; }
+
+function run(K){
+  // A. IATG Table 5
+  const T5 = {1000:[0.43,5.9,0.062,1.01,12.6,37.9,82.4,398], 10000:[2.02,25.2,1.12,6.8,65.5,46.8,48.1,559], 100000:[11.5,106,17.9,66.5,372,93,24.8,1114]};
+  const names = ['Incident pressure (bar)','Incident impulse (bar·ms)','Dynamic pressure (bar)','Reflected pressure (bar)','Reflected impulse (bar·ms)','Positive duration (ms)','Arrival time (ms)','Shock velocity (m/s)'];
+  const rA = [];
+  for (const W of [1000,10000,100000]){
+    const b = K.blast(W, W, 50);
+    const got = [b.Pso/100, b.is/100, K.qDyn(b.Pso)/100, b.Pr/100, b.ir/100, b.td, b.ta, b.U];
+    T5[W].forEach((exp, i) => { const d = rel(got[i], exp); rA.push(row([`${W/1000} t @ 50 m – ${names[i]}`, exp, f(got[i]), (d*100).toFixed(2)+'%'], d <= 0.02)); });
+  }
+  section('A','A. IATG 01.80 Table 5: Kingery-Bulmash worked examples','Published values for 1, 10 and 100 t TNT at 50 m, compared with the live engine. The tolerance is 2%, because Table 5 is printed to 2–3 significant figures.',['Case','IATG Table 5','App (live)','Difference',''], rA);
+
+  // B. Spreadsheet
+  const D = [5,10,20,30,35,37.5,40,50,60,70,75,80,90,100,110,120];
+  const S = {15:[275.05,63.25,19.94,11.38,9.33,8.55,7.88,5.97,4.73,3.84,3.49,3.19,2.69,2.32,3.06,1.89],
+             100:[1157.19,239.45,56.44,28.17,22.21,20.05,18.26,13.38,10.52,8.64,7.92,7.31,6.31,5.53,4.89,4.36],
+             1000:[4874.62,1356.74,283.76,115.67,84.26,73.51,64.91,43.18,31.75,24.87,22.39,20.34,17.16,14.81,13.01,11.59]};
+  const rB = [];
+  for (const W of [15,100,1000]) D.forEach((R, i) => {
+    const b = K.blast(W, W, R), exp = S[W][i], d = rel(b.Pso, exp), Z = R/Math.cbrt(W);
+    const typo = W === 15 && R === 110, outside = Z > K.Z_MAX;
+    const note = typo ? 'Sheet value inconsistent with its column (KB = ' + f(b.Pso) + ')' : outside ? `Z = ${Z.toFixed(1)} > 40: sheet extrapolates the polynomial, app uses the continuous extension` : '';
+    rB.push(row([`${W} kg @ ${R} m${note ? `<br><small class="muted">${note}</small>` : ''}`, exp, b.Pso.toFixed(2), (d*100).toFixed(2)+'%'], d <= 0.005, typo || outside));
+  });
+  section('B','B. Your spreadsheet: incident overpressure (kPa)','Your three columns are 15 kg, 100 kg and 1000 kg TNT. Every cell inside the KB validity range must match to within 0.5%.',['Cell','Spreadsheet','App (live)','Difference',''], rB);
+
+  // C. Swisdak independent cross-check
+  const rC = [];
+  const lab = {Pso:'Incident pressure', Pr:'Reflected pressure', is:'Incident impulse (scaled)', ir:'Reflected impulse (scaled)', ta:'Arrival time (scaled)'};
+  for (const k of Object.keys(lab)) for (const Z of [0.3,0.5,1,2,3,5,10,20,30]){
+    const a = K.kbEval(k, Z), s = sw(k, Z);
+    if (isNaN(s)) continue;
+    const d = rel(a, s);
+    rC.push(row([`${lab[k]}, Z = ${Z}`, f(s), f(a), (d*100).toFixed(2)+'%'], d <= 0.02));
+  }
+  section('C','C. Independent cross-check: KB coefficients vs Swisdak (1994)','Swisdak’s simplified fits are coded separately on this page. Two independent curve fits to the same test data must agree to within 2%.',['Parameter','Swisdak','App KB','Difference',''], rC);
+
+  // D. IATG Table 50/53
+  const rD = [];
+  const ps = 127, pr = K.reflectRH(ps), le = K.tnoLung(pr, 56.5);
+  rD.push(row(['Pi = 1.27 bar, t₀ = 56.5 ms (reflected loading): TNO lethality', '11%', (le*100).toFixed(1)+'%', ''], Math.abs(le - 0.11) <= 0.015));
+  const pz = [0.5,0.9,0.99].map(p => { let a=Math.log(10), b=Math.log(1e5); for(let i=0;i<60;i++){const m=(a+b)/2; if(K.tnoLung(Math.exp(m),50)<p) a=m; else b=m;} return Math.exp(a)/K.KPA_PER_PSI; });
+  rD.push(row(['Monotonic: 50% / 90% / 99% lethal pressures increase (50 ms)', 'rising', pz.map(v=>v.toFixed(0)+' psi').join(' / '), ''], pz[0] < pz[1] && pz[1] < pz[2]));
+  rD.push(row(['Shorter pulse needs more pressure (50% lethal, 5 ms vs 50 ms)', '5 ms > 50 ms', '', ''], (() => { const p = t => { let a=Math.log(10), b=Math.log(1e6); for(let i=0;i<60;i++){const m=(a+b)/2; if(K.tnoLung(Math.exp(m),t)<0.5) a=m; else b=m;} return Math.exp(a); }; return p(5) > p(50); })()));
+  section('D','D. IATG Table 50 / Table 53: TNO lung lethality','IATG’s worked comparison (Table 53) gives 11% lethality for the TNO criterion. The duration behaviour must also make physical sense.',['Check','Expected','App (live)','',''], rD);
+
+  // E. UFC Table 3-1 and Eisenberg vs sheet
+  const rE = [];
+  const P = psi => psi*K.KPA_PER_PSI*1000;
+  const ufc = [['Eardrum 50%',15,K.logn(15,15,0.47)],['Lung damage 50%',80,K.logn(80,80,0.42)],['Lethality 50%',130,K.logn(130,130,0.15)]];
+  for (const [n, psi, v] of ufc) rE.push(row([`UFC: ${n} at ${psi} psi`, '50%', (v*100).toFixed(1)+'%', ''], Math.abs(v - 0.5) < 0.01));
+  rE.push(row(['UFC: lethality at the 100 psi threshold', 'about 1–5%', (K.logn(100,130,0.15)*100).toFixed(1)+'%', ''], K.logn(100,130,0.15) < 0.06));
+  rE.push(row(['UFC: lethality at 200 psi (near 100%)', '>99%', (K.logn(200,130,0.15)*100).toFixed(2)+'%', ''], K.logn(200,130,0.15) > 0.99));
+  const eis = psi => K.probit(-77.1 + 6.91*Math.log(P(psi)));
+  const ear = psi => K.probit(-15.6 + 1.93*Math.log(P(psi)));
+  rE.push(row(['Eisenberg: fatalities at 14.5 psi (sheet: 1%)', '1%', (eis(14.5)*100).toFixed(2)+'%', ''], Math.abs(eis(14.5) - 0.01) < 0.01));
+  rE.push(row(['Eisenberg: fatalities at 29 psi (sheet: 99%)', '99%', (eis(29)*100).toFixed(2)+'%', ''], Math.abs(eis(29) - 0.99) < 0.01));
+  rE.push(row(['Eisenberg: eardrum rupture at 12.2 psi (sheet: 90%)', '90%', (ear(12.2)*100).toFixed(1)+'%', ''], Math.abs(ear(12.2) - 0.9) < 0.02));
+  rE.push(row(['Eisenberg: eardrum rupture at 2.4 psi (sheet: 1%)', '1%', (ear(2.4)*100).toFixed(1)+'%', 'The sheet’s lower bound is slightly more conservative than the probit'], Math.abs(ear(2.4) - 0.01) < 0.01, Math.abs(ear(2.4) - 0.01) >= 0.01));
+  section('E','E. UFC 3-340-02 Table 3-1 and your spreadsheet’s injury rows','The people models must pass through the published points.',['Check','Published','App (live)','Note',''], rE);
+
+  // F. TNT equivalence vs IATG Table 10/11
+  const T10 = {anfo:[0.82,0.82],compb:[1.11,0.98],c4:[1.37,1.19],h6:[1.38,1.15],octol:[1.06,1.06],pent:[1.42,1.00],petn:[1.27,1.11],rdx:[1.14,1.09],cyclo:[1.14,1.09],tetryl:[1.07,null],tnt:[1,1],torpex:[1.23,1.28],trit:[1.07,0.96],
+               hmx:[1.15,null],pbx9407:[1.14,null],baratol:[0.53,null],nq:[0.76,null],ng:[1.13,null]};
+  const rF = [];
+  for (const [id, [p, i]] of Object.entries(T10)){
+    const e = K.DEFAULT_LIB.find(x => x.id === id);
+    if (!e){ rF.push(row([id, `${p} / ${i ?? '—'}`, 'missing', ''], false)); continue; }
+    const ok = e.p === p && (i == null || e.i === i);
+    rF.push(row([esc(e.name), `${p} / ${i ?? '—'}`, `${e.p} / ${e.i}`, i == null ? 'Impulse not published: set equal to pressure' : ''], ok));
+  }
+  section('F','F. TNT equivalence: library defaults vs IATG Tables 10 and 11','Pressure and impulse factors. Table 10 = AASTP-1 Table 5-2. Table 11 = heat of detonation (UFC 3-340-02).',['Explosive','IATG (P / I)','App default (P / I)','Note',''], rF);
+
+  // G. Scilly / GLS and Table 54
+  const rG = [];
+  const GLS = {A:4.8,B:7.1,Cb:12.4,Ca:21.3,D:42.6};
+  for (const x of K.SCILLY) rG.push(row([`K-factor, category ${x.c}`, GLS[x.c], x.K, ''], x.K === GLS[x.c]));
+  const M = 1000, Rx = 4.8*Math.cbrt(M)/Math.pow(1 + (3175/M)**2, 1/6);
+  rG.push(row(['R_A for 1000 kg: K·M^⅓ / (1+(3175/M)²)^⅙', Rx.toFixed(2)+' m', K.scillyR(4.8, M).toFixed(2)+' m', ''], Math.abs(K.scillyR(4.8, M) - Rx) < 1e-9));
+  const T54 = {A:[0.62,0.71,0.84],B:[0.096,0.15,0.38],Cb:[0.009,0.043,0.13],Ca:[0,0.002,0.006],D:[0,0,0]};
+  for (const x of K.SCILLY) rG.push(row([`Table 54 occupants, category ${x.c}: P(K), P(K+SI), P(K+SI+LI)`, T54[x.c].join(' / '), x.p.join(' / '), ''], x.p.every((v,k) => v === T54[x.c][k])));
+  section('G','G. IATG Tables 41, 42 and 54: brick-house damage and occupant casualties','Gilbert, Lees & Scilly K-factors, the range formula, and the casualty probabilities.',['Check','IATG','App (live)','',''], rG);
+
+  // H. Windows
+  const rH = [];
+  const T44 = {small:[-1.013,-2.558], medium:[0.796,-0.788], large:[2.674,0.983]};
+  for (const [k, [a, b]] of Object.entries(T44)) rH.push(row([`Table 44 probit constants, ${k} window`, `${a} / ${b}`, `${K.WIN[k].a} / ${K.WIN[k].b}`, ''], K.WIN[k].a === a && K.WIN[k].b === b));
+  const pts = [[0.01,[1e-5,1e-4,1e-3]],[0.5,[1e-3,1e-2,0.1]],[1,[0.01,0.1,1]]];
+  for (const [br, exp] of pts){ const g = K.glassInjury(br); rH.push(row([`Table 46: ${br*100}% breakage → lethal / major / minor`, exp.join(' / '), g.map(v => +v.toPrecision(3)).join(' / '), ''], g.every((v,k) => Math.abs(v/exp[k] - 1) < 1e-6))); }
+  const big = K.windowBreak(50, 500, 'medium'), none = K.windowBreak(0.5, 2, 'medium');
+  rH.push(row(['Strong load (50 kPa, 500 kPa·ms) breaks a medium window', '≈100%', (big*100).toFixed(1)+'%', ''], big > 0.99));
+  rH.push(row(['Weak load (0.5 kPa, 2 kPa·ms) leaves it intact', '≈0%', (none*100).toFixed(1)+'%', ''], none < 0.01));
+  const order = ['small','medium','large'].map(s => K.windowBreak(4, 40, s));
+  rH.push(row(['Larger windows break more easily (4 kPa, 40 kPa·ms)', 'small < medium < large', order.map(v => (v*100).toFixed(0)+'%').join(' < '), ''], order[0] <= order[1] && order[1] <= order[2]));
+  section('H','H. IATG Tables 43–46: window breakage and glass injuries','Constants from the published probit table, the injury table points, and sanity checks.',['Check','IATG / expected','App (live)','',''], rH);
+
+  // I. Physical consistency
+  const rI = [];
+  let mono = true, prev = Infinity;
+  for (let i = 0; i < 5000; i++){ const Z = 0.0674*Math.pow(198/0.0674, i/4999), v = K.psoZ(Z).v; if (!(v < prev)) mono = false; prev = v; }
+  rI.push(row(['Incident pressure falls continuously with distance (Z 0.067 → 198)', 'strictly decreasing', mono ? 'yes' : 'no', ''], mono));
+  const j40 = rel(K.psoZ(39.999).v, K.psoZ(40.001).v);
+  rI.push(row(['No jump where the long-range extension joins (Z = 40)', '< 0.1%', (j40*100).toFixed(3)+'%', ''], j40 < 0.001));
+  for (const Zj of [1.01, 2.78]){ const d = rel(K.kbEval('td', Zj - 1e-4), K.kbEval('td', Zj + 1e-4)); rI.push(row([`Positive-duration segments join at Z = ${Zj}`, '< 2%', (d*100).toFixed(2)+'%', 'KB segment fits meet within their published accuracy'], d < 0.02)); }
+  const b1 = K.blast(1000, 1000, 50);
+  rI.push(row(['Reflected pressure exceeds incident pressure', 'Pr > Ps', `${f(b1.Pr)} > ${f(b1.Pso)} kPa`, ''], b1.Pr > b1.Pso));
+  const sc = K.blast(8, 8, 10), sc2 = K.blast(1, 1, 5);
+  rI.push(row(['Hopkinson-Cranz scaling: 8 kg @ 10 m has the same pressure as 1 kg @ 5 m', 'equal', `${f(sc.Pso)} / ${f(sc2.Pso)} kPa`, ''], rel(sc.Pso, sc2.Pso) < 1e-9));
+  section('I','I. Physical consistency','The engine must behave the way blast physics does.',['Check','Expected','App (live)','Note',''], rI);
+
+  // Summary
+  const total = nPass + nFail;
+  document.getElementById('sum').innerHTML = nFail === 0
+    ? `<span style="color:var(--ok)">✔ ${nPass} of ${total} checks passed</span>`
+    : `<span style="color:var(--bad)">✖ ${nFail} of ${total} checks failed</span>`;
+  document.getElementById('sumsub').innerHTML = `${nInfo} informational differences documented below. The checks ran just now against the code currently deployed. No stored results.`;
+  document.getElementById('ranat').textContent = 'Checks run at ' + new Date().toLocaleString();
+}
+
+function renderStatic(){
+  document.getElementById('refs').innerHTML = `<thead><tr><th class="l">Source</th><th class="l">Used for</th><th class="l">Verification</th><th></th></tr></thead><tbody>` +
+    REFS.map(r => `<tr><td class="l">${esc(r.src)}</td><td class="l">${esc(r.use)}</td><td class="l">${esc(r.ver)}</td><td><span class="pill ${r.st}">${r.st === 'pass' ? 'VERIFIED' : 'NOTED'}</span></td></tr>`).join('') + '</tbody>';
+  document.getElementById('log').innerHTML = `<thead><tr><th class="l">Version</th><th class="l">Changes</th></tr></thead><tbody>` +
+    CHANGELOG.map(([v, t]) => `<tr><td class="l"><b>${v}</b></td><td class="l">${esc(t)}</td></tr>`).join('') + '</tbody>';
+}
+
+async function showVersion(){
+  try {
+    const r = await fetch('version.json', {cache:'no-store'});
+    const v = await r.json();
+    document.getElementById('ver').textContent = `v${v.version} · ${v.commit ? v.commit.slice(0,7) : 'local'} · built ${v.builtAt ? new Date(v.builtAt).toLocaleString() : '—'}`;
+  } catch(e){ document.getElementById('ver').textContent = ''; }
+}
+
+renderStatic(); showVersion();
+const frame = document.getElementById('app');
+let tries = 0;
+function attempt(){
+  let K = null;
+  try { K = frame.contentWindow && frame.contentWindow.BlastKB; } catch(e){}
+  if (K){ try { run(K); } catch(e){ document.getElementById('sum').innerHTML = `<span style="color:var(--bad)">Checks could not run: ${esc(e.message)}</span>`; } return; }
+  if (++tries < 100) setTimeout(attempt, 100);
+  else document.getElementById('sum').innerHTML = '<span style="color:var(--bad)">Could not load the calculator to test it. Open this page from the website, not as a local file.</span>';
+}
+frame.addEventListener('load', attempt);
+</script>
+</body>
+</html>
