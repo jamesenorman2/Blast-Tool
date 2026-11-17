@@ -4,7 +4,7 @@ A single-file web app (`index.html`). It needs no install, no server and no inte
 
 ## What it does
 - **Impact assessment** (top of the page). Enter the explosive, the weight and the distance. Bar charts then show:
-  - **Buildings**: the IATG 01.80 brick-house damage category (Scilly / Gilbert-Lees-Scilly, Tables 40–42) with a distance-zone strip; the IATG Swiss P-I window-breakage model for small, medium and large windows; and FEMA 426 Table 4-1 based fragility for wood, masonry, metal-clad, steel and concrete buildings.
+  - **Buildings**: the IATG 01.80 brick-house damage category (Scilly / Gilbert-Lees-Scilly, Tables 40–42) with a distance-zone strip; the IATG Swiss P-I window-breakage model for small, medium and large windows; and fragility curves based on commonly cited overpressure ranges (protection levels per FEMA 426 / BIPS-06 Table 3-2) for wood, masonry, metal-clad, steel and concrete buildings.
   - **People**: killed, seriously injured, minor injury and uninjured, for people in the open, next to a wall, or inside a building. Three injury models are shown side by side: IATG Table 50 / TNO (default; allows for blast duration), your spreadsheet (Eisenberg), and UFC 3-340-02. TNO head-impact and body-displacement risk, window-glass injuries (IATG Table 46) and building-collapse casualties (IATG Table 54) are included.
   - Expected numbers for N people at the target, and a crowd-density estimate for everyone in the open around the blast.
   - A plan-view hazard-zone map, a pressure gauge, and your spreadsheet and FEMA tables with the rows that apply highlighted.

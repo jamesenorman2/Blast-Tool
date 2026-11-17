@@ -1,6 +1,14 @@
 # Blast-Tool
 
-Single-file static web app (`index.html`). No build step.
+Static web app (`index.html` calculator, `verification.html` live checks, `login.html`, `admin.html`).
+Build step `scripts/build-version.js` (Vercel) writes `version.json`.
+
+## Access control
+- Supabase project `blast-tool` (ref `rabgawsevqkcdpbxzgak`, org James Norman). NOT Task-Bubbles.
+- Table `public.allowed_users` (email, role user|admin). Admins: james.norman@aecom.com, jamesenorman2@gmail.com.
+- `middleware.js` (Vercel edge) blocks every page except `login.html`/`auth.js`/`api/` unless the `bt_at` cookie
+  holds a valid Supabase token whose email is on the allow list; `/admin*` needs role admin.
+- `api/magic-link.js` creates one-time sign-in links; needs Vercel env var `SUPABASE_SERVICE_ROLE_KEY`.
 
 ## Deployment (always)
 - Vercel project: `blast-tool` (team `jamesenorman2s-projects`), linked to this GitHub repo.

@@ -37,13 +37,18 @@ code{font-size:12px;background:var(--head);padding:1px 4px;border-radius:3px}
 @media (min-width:1600px){main{max-width:none;padding:20px 28px}}
 @media (min-width:3000px){main{padding:28px 56px}.cols{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:640px){main{padding:12px 16px}.big{font-size:22px}}
+#btUser{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--muted);flex-wrap:wrap}
+#btUser button{font-size:12px;padding:3px 8px}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="auth.js"></script>
 </head>
 <body>
 <header>
   <h1>References &amp; Verification</h1>
   <span class="muted" id="ver"></span>
   <span class="spacer"></span>
+  <span id="btUser"></span>
   <a class="navlink" href="index.html">← Back to calculator</a>
 </header>
 <main>
@@ -74,7 +79,7 @@ code{font-size:12px;background:var(--head);padding:1px 4px;border-radius:3px}
     <ul>
       <li>The <b>Kingery-Bulmash coefficients</b> are the published hemispherical-surface-burst set (ARBRL-TR-02555, as reproduced in AASTP-1 Table 5-5). AASTP-1 itself was not available here. The coefficients are proven by matching IATG Table 5 and by agreeing with Swisdak’s independent 1994 fits (both checked live below).</li>
       <li>Beyond Z = 40 m/kg<sup>1/3</sup> (outside KB validity) the app extends incident pressure and impulse using Swisdak’s long-range slopes, joined continuously at Z = 40. IATG notes that Kinney-Graham is validated to Z = 500. Results in this range are shown in italics in the app.</li>
-      <li><b>FEMA 426 Table 4-1</b> ranges are quoted from the published table. They have not yet been checked line by line against a FEMA 426 document in this session. The building fragility medians and the β = 0.35 dispersion are <b>engineering judgement</b> derived from those ranges. They are not a FEMA-published fragility model.</li>
+      <li>The <b>damage vs overpressure ranges</b> (glass 0.15–0.22 psi … total destruction 10–12 psi) are widely attributed to FEMA 426 (2003). A review of FEMA 426 / BIPS-06 (2011) found they are not in that edition, and no standard in the reference set contains them. They are shown as indicative. The building fragility medians and the β = 0.35 dispersion built on them are <b>engineering judgement</b>, not a FEMA-published fragility model.</li>
       <li><b>HME TNT-equivalence factors</b> (TATP, HMTD, improvised ANFO, AN/Al, urea nitrate, chlorate mixtures, neat AN) are <b>indicative only</b>. No standard in the reference set gives them. They come from open literature, and real performance varies widely.</li>
       <li><b>Injury models disagree by design.</b> The Eisenberg probits behind the spreadsheet come from long-duration blasts and overstate lethality from small charges. UFC 3-340-02 Table 3-1 ignores duration. IATG Table 50 (TNO) includes duration. The app shows all three side by side.</li>
       <li><b>Fragments and debris</b> from casings or vehicles are not modelled. IATG §6.3.3 needs case- and debris-density data that a quick assessment does not have.</li>
@@ -92,6 +97,7 @@ code{font-size:12px;background:var(--head);padding:1px 4px;border-radius:3px}
 <script>
 "use strict";
 const CHANGELOG = [
+  ['1.4.0', 'Sign-in with an allow list (magic link and Google), admin page. Reviewed against FEMA 426 / BIPS-06 (2011): protection levels now follow Table 3-2 word for word, its worked example added as live checks, and the damage-vs-overpressure table relabelled as not part of that edition.'],
   ['1.3.0', 'Responsive layouts for phones, 1080p and 4K. References & verification page with live checks. Version stamp on every deployment.'],
   ['1.2.0', 'IATG 01.80 models: brick-house damage (Tables 40–42), window P-I breakage (Tables 43–46), occupant casualties (Table 54), TNO lung lethality (Table 50). TNT library aligned with IATG Tables 10/11.'],
   ['1.1.0', 'Impact assessment: building damage and casualty bar charts, hazard-zone plan view, crowd estimate.'],
@@ -111,7 +117,8 @@ const REFS = [
   {src:'Eisenberg, Lynch & Breeding (1975), Vulnerability Model (probit equations).', use:'Spreadsheet people model (lethality and eardrum rupture).', ver:'Shown to reproduce your sheet’s “14.5–29 psi = 1–99% fatalities” and “12.2 psi = 90% eardrum” rows (check E).', st:'pass'},
   {src:'Swisdak, M.M. (1994). Simplified Kingery Airblast Calculations. DDESB Seminar.', use:'Independent cross-check of the KB coefficients, and long-range extension beyond Z = 40.', ver:'Implemented separately on this page and compared live (check C).', st:'pass'},
   {src:'TNO Green Book (CPR 16E): head-impact and whole-body-displacement probits.', use:'People in the open being thrown against objects.', ver:'Equations as published in CPR 16E. Not checked against the document in this session.', st:'note'},
-  {src:'FEMA 426 (2003) Table 4-1: damage vs. overpressure; DoD levels of protection.', use:'Damage descriptions and the medians of the non-brick building fragility curves.', ver:'Ranges as published. Not checked line by line against the document in this session. The fragility curves are engineering judgement built on them.', st:'note'},
+  {src:'FEMA 426 / BIPS-06 (2011), Reference Manual to Mitigate Potential Terrorist Attacks Against Buildings, §3.1.1 worked example, Table 3-1 and Table 3-2 (from UFC 4-010-01).', use:'Independent blast-load check, injury thresholds, and the wording of the levels of protection shown in the app.', ver:'Checked against your OneDrive copy (1 - STANDARDS/Blast/FEMA426-bips-06.pdf). The page 3-5 example is reproduced live (check J). Table 3-1 matches UFC 3-340-02 (check E). Table 3-2 wording is used verbatim.', st:'pass'},
+  {src:'Commonly cited damage vs incident overpressure ranges (glass 0.15–0.22 psi … total destruction 10–12 psi).', use:'Reference table in the app and the medians of the non-brick building fragility curves.', ver:'Widely attributed to FEMA 426 (2003), but NOT present in FEMA 426 / BIPS-06 (2011), and not found in the standards in your OneDrive. Treat as indicative. The fragility curves built on it are engineering judgement.', st:'note'},
   {src:'Open-literature HME relative-effectiveness values.', use:'TNT factors for homemade explosives.', ver:'Indicative only. No standard source. Ranges are shown and the worst case can be selected.', st:'note'},
 ];
 
@@ -246,6 +253,19 @@ function run(K){
   const sc = K.blast(8, 8, 10), sc2 = K.blast(1, 1, 5);
   rI.push(row(['Hopkinson-Cranz scaling: 8 kg @ 10 m has the same pressure as 1 kg @ 5 m', 'equal', `${f(sc.Pso)} / ${f(sc2.Pso)} kPa`, ''], rel(sc.Pso, sc2.Pso) < 1e-9));
   section('I','I. Physical consistency','The engine must behave the way blast physics does.',['Check','Expected','App (live)','Note',''], rI);
+
+  // J. FEMA 426 / BIPS-06 §3.1.1 worked example (p. 3-4/3-5): 500 lb TNT at 50 ft and 10 ft
+  const rJ = [];
+  const W5 = 500*0.45359237;
+  for (const [ft, pi, pr] of [[50, 25, 80], [10, 707, 5732]]){
+    const b = K.blast(W5, W5, ft*0.3048);
+    const gi = b.Pso/K.KPA_PER_PSI, gr = b.Pr/K.KPA_PER_PSI;
+    const di = rel(gi, pi), dr = rel(gr, pr);
+    rJ.push(row([`500 lb TNT at ${ft} ft – incident pressure`, pi + ' psi', gi.toFixed(1) + ' psi', (di*100).toFixed(2)+'%'], di <= 0.03));
+    rJ.push(row([`500 lb TNT at ${ft} ft – reflected pressure`, pr + ' psi', gr.toFixed(0) + ' psi', (dr*100).toFixed(2)+'%'], dr <= 0.03));
+    rJ.push(row([`500 lb TNT at ${ft} ft – amplification Pr/Pi`, (pr/pi).toFixed(1), (gr/gi).toFixed(1), ''], Math.abs(gr/gi - pr/pi) <= 0.2));
+  }
+  section('J','J. FEMA 426 / BIPS-06 (2011) §3.1.1: worked example','“500 pounds (227 kg) of TNT equivalent will produce an incident peak pressure of 25 psi [at 50 ft] … amplified to 80 psi … at 10 feet the incident peak pressure is 707 psi and the reflected pressure is 5,732 psi.” Tolerance 3% (the text rounds to whole psi).',['Case','FEMA 426','App (live)','Difference',''], rJ);
 
   // Summary
   const total = nPass + nFail;

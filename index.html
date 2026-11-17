@@ -178,7 +178,11 @@ tr.miss td{opacity:.45}
   .row > label{flex:1 1 100%}
   #rings{max-width:100%}
 }
+#btUser{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--muted);flex-wrap:wrap}
+#btUser button{font-size:12px;padding:3px 8px}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="auth.js"></script>
 </head>
 <body>
 <header>
@@ -191,6 +195,7 @@ tr.miss td{opacity:.45}
     <button id="u-si" class="on">Metric</button><button id="u-imp">Imperial</button>
   </div>
   <span class="ver" id="appVer" title="Version · commit · build time"></span>
+  <span id="btUser" class="noprint"></span>
   <a class="noprint navlink" href="verification.html">References &amp; verification</a>
   <button class="noprint" onclick="window.print()">Print</button>
   <button class="noprint" id="themeBtn" title="Toggle theme">◐</button>
@@ -241,7 +246,7 @@ tr.miss td{opacity:.45}
 
     <div class="as-grid">
       <div class="c-bld">
-        <h3>Buildings: damage at this distance <span class="dim" style="font-weight:400">(IATG 01.80 §6.2 + FEMA 426 Table 4-1)</span></h3>
+        <h3>Buildings: damage at this distance <span class="dim" style="font-weight:400">(IATG 01.80 §6.2 + commonly cited overpressure ranges)</span></h3>
         <div class="stackleg">
           <span><i style="background:var(--d0)"></i>None</span><span><i style="background:var(--d1)"></i>Light</span><span><i style="background:var(--d2)"></i>Moderate</span><span><i style="background:var(--d3)"></i>Severe</span><span><i style="background:var(--d4)"></i>Destroyed / collapse</span>
         </div>
@@ -278,7 +283,7 @@ tr.miss td{opacity:.45}
         <li><b>Blast loads</b>: Kingery-Bulmash (IATG 01.80 §5.1.2). The engine reproduces IATG Table 5 (e.g. 1000 kg at 50 m: 0.43 bar, 5.9 bar·ms, 1.01 bar reflected, 37.9 ms, 82.4 ms, 398 m/s). Dynamic pressure q = 5/2·P²/(7P₀+P) (IATG Table 6).</li>
         <li><b>Brick housing (IATG §6.2.1, Tables 40–42)</b>: R<sub>x</sub> = K<sub>x</sub>·M<sup>1/3</sup> / (1+(3175/M)²)<sup>1/6</sup>, using the Gilbert, Lees &amp; Scilly K-factors A 4.8, B 7.1, Cb 12.4, Ca 21.3, D 42.6. M is the TNT-equivalent mass.</li>
         <li><b>Windows (IATG §6.2.3, Tables 43–46)</b>: Swiss P-I model (P−A)(I−B)=C with the small/medium/large probits. The model uses incident pressure and impulse. Occupant injury from breakage follows Table 46 (100% breakage → 100% minor, 10% major, 1% lethal).</li>
-        <li><b>Other building types</b>: lognormal fragility curves (Light / Moderate / Severe / Destroyed) with medians taken from the FEMA 426 Table 4-1 overpressure ranges and your spreadsheet. Dispersion β = 0.35.</li>
+        <li><b>Other building types</b>: lognormal fragility curves (Light / Moderate / Severe / Destroyed) with medians taken from the commonly cited damage-vs-overpressure ranges and your spreadsheet. Dispersion β = 0.35. That range table is widely attributed to FEMA 426 (2003), but it does <b>not</b> appear in FEMA 426 / BIPS-06 (2011). The protection-level wording follows FEMA 426 / BIPS-06 Table 3-2 (UFC 4-010-01).</li>
         <li><b>People inside</b>: casualty probabilities by damage category from IATG Table 54 (Gilbert, Lees &amp; Scilly). For FEMA building types the states map to A / B / Cb / Ca. These combine with primary blast and window-glass injury, treated as independent.</li>
         <li><b>IATG model (default)</b>: IATG Table 50 / TNO Green Book lung lethality. Pr = 5 + 5.7 ln V, with V = (P/P₀)/(4.17 − 0.00164·ln t/t + 0.0161/t), where t is the positive-phase duration (s) for a 70 kg body. It reproduces the 11% lethality in IATG Table 53 when reflected pressure is used. Standing in the open uses side-on + dynamic pressure. Next to a wall uses reflected pressure. Eardrum uses the TNO probit −12.6 + 1.524 ln P.</li>
         <li><b>Spreadsheet model</b>: Eisenberg probits. Lethality: −77.1 + 6.91 ln P; eardrum: −15.6 + 1.93 ln P. They reproduce your sheet’s 14.5–29 psi and 2.4–12.2 psi rows. They are based on long-duration (nuclear-scale) blasts, so they <b>overstate</b> deaths from small charges.</li>
@@ -399,7 +404,7 @@ tr.miss td{opacity:.45}
 
 <script>
 "use strict";
-const APP_VERSION = '1.3.0'; // keep in sync with VERSION (the build fails if they differ)
+const APP_VERSION = '1.4.0'; // keep in sync with VERSION (the build fails if they differ)
 /* ================= Kingery-Bulmash engine (hemispherical surface burst, SI) ================= */
 // Each entry: [Zmin, Zmax, C0, C1, [K0..Kn]]  -> U = C0 + C1*log10(Z); log10(Y) = sum Ki U^i
 const KB = {
@@ -1013,12 +1018,13 @@ const FEMA_T41 = [
   {lo:6,    hi:9,    txt:'Severe damage to reinforced concrete structures'},
   {lo:10,   hi:12,   txt:'Probable total destruction of most buildings'},
 ];
+// FEMA 426 / BIPS-06 (2011) Table 3-2, from UFC 4-010-01 (2007). Index = damage state 0 None .. 4 Destroyed.
 const LOP = [
-  ['No damage', 'No damage expected.'],
-  ['High protection', 'Superficial damage. Minor glazing / cladding damage. Few, minor injuries.'],
-  ['Medium protection','Damaged but repairable. Some permanent deformation. Moderate injuries.'],
-  ['Low protection',  'Heavily damaged and not economically repairable. Collapse unlikely. Serious injuries.'],
-  ['Very low / below AT standard','Onset of structural collapse or progressive collapse. Major casualties.'],
+  ['High (FEMA 426 Table 3-2)', 'Minimal damage. No permanent deformations. Facility immediately operable. Glazing will not break. Only superficial injuries are likely.'],
+  ['Medium (FEMA 426 Table 3-2)', 'Minor damage, economically repairable. Glazing fractures but stays in the frame (minimal hazard: glass dust and slivers). Personnel in the damaged area may suffer minor to moderate injuries, but fatalities are unlikely.'],
+  ['Low (FEMA 426 Table 3-2)', 'Moderate damage, not economically repairable. Progressive collapse will not occur. Glazing may come out of the frame at reduced velocity. Most personnel in the damaged area suffer minor to moderate injuries, with potential for a few serious injuries; fatalities are unlikely.'],
+  ['Very Low (FEMA 426 Table 3-2)', 'Heavy damage: onset of structural collapse, but progressive collapse is unlikely. Glazing is likely to be propelled into the building and could cause serious injuries. Most personnel in the damaged area suffer serious injuries, with potential for fatalities.'],
+  ['Below AT standards (FEMA 426 Table 3-2)', 'Severe damage. Progressive collapse likely. Doors and windows fail catastrophically, giving lethal hazards. Most personnel in the collapse region suffer fatalities; fatalities outside the collapsed area are also likely.'],
 ];
 function bldProbs(b, psi){
   const ex = b.med.map(m => logn(psi, m, b.beta || 0.35));
@@ -1281,7 +1287,7 @@ function renderAssess(){
     t1 += `<tr class="${hit?'hit':'miss'}"><td class="${band(d.t)}" style="text-align:left">${d.t2 != null ? `${d.t}–${d.t2}` : d.t}</td><td class="l wrap">${esc(d.txt)}</td><td class="l wrap">${esc(d.hum||'')}</td></tr>`;
   }
   $('asSheetTbl').innerHTML = t1 + '</tbody>';
-  let t2 = `<thead><tr><th>psi</th><th class="l">FEMA 426 Table 4-1: damage</th></tr></thead><tbody>`;
+  let t2 = `<thead><tr><th>psi</th><th class="l">Commonly cited damage vs incident overpressure (not in FEMA 426 / BIPS-06)</th></tr></thead><tbody>`;
   for (const f of FEMA_T41){
     const hit = psi >= f.lo;
     t2 += `<tr class="${hit?'hit':'miss'}"><td class="${band(f.lo)}" style="text-align:left">${f.hi?`${f.lo}–${f.hi}`:`> ${f.lo}`}</td><td class="l wrap">${esc(f.txt)}${hit && f.hi && psi < f.hi ? ' <i>(within range: partial)</i>' : ''}</td></tr>`;
