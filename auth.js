@@ -1,4 +1,4 @@
-// Blast Tool sign-in (Supabase project "blast-tool"). Shared by every page.
+// Blast Calculator sign-in (Supabase project "blast-tool"). Shared by every page.
 // The anon key is public by design; access is enforced by middleware.js (server side)
 // and by row-level security on public.allowed_users.
 (function () {

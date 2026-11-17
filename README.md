@@ -1,4 +1,4 @@
-# Blast Overpressure Calculator
+# Blast Calculator
 
 A single-file web app (`index.html`). It needs no install, no server and no internet. Open it in any browser.
 

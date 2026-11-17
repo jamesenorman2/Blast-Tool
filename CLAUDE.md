@@ -1,4 +1,4 @@
-# Blast-Tool
+# Blast Calculator (repo: Blast-Tool)
 
 Static web app (`index.html` calculator, `verification.html` live checks, `login.html`, `admin.html`).
 Build step `scripts/build-version.js` (Vercel) writes `version.json`.
