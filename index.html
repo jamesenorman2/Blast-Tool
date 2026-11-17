@@ -1,0 +1,797 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blast Overpressure Calculator</title>
+<meta name="description" content="Kingery-Bulmash airblast calculator (IATG 01.80 / UN SaferGuard method) with TNT equivalence, range tables, standoff distances and damage/injury criteria.">
+<style>
+:root{
+  --bg:#f5f6f8; --panel:#ffffff; --ink:#1b1f24; --muted:#5d6670; --line:#d8dde3; --head:#eef1f4;
+  --accent:#1f5fae; --green:#178a3a; --blue:#1a8fd6; --red:#d22b2b; --amber:#b8860b;
+  --s1:#1f5fae; --s2:#d2691e; --s3:#7b3fb5; --s4:#178a7a;
+  --warnbg:#fff6e0; --warnline:#e8c56a;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#111418; --panel:#1a1f25; --ink:#e7eaee; --muted:#9aa4ae; --line:#2e353d; --head:#222830;
+    --accent:#6aa7ff; --green:#4cc76f; --blue:#4fb6f5; --red:#ff6161; --amber:#e3b341;
+    --s1:#6aa7ff; --s2:#f0a050; --s3:#b88cf0; --s4:#4fd1bd;
+    --warnbg:#2b2412; --warnline:#6b5420;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#111418; --panel:#1a1f25; --ink:#e7eaee; --muted:#9aa4ae; --line:#2e353d; --head:#222830;
+  --accent:#6aa7ff; --green:#4cc76f; --blue:#4fb6f5; --red:#ff6161; --amber:#e3b341;
+  --s1:#6aa7ff; --s2:#f0a050; --s3:#b88cf0; --s4:#4fd1bd;
+  --warnbg:#2b2412; --warnline:#6b5420;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+header h1{font-size:18px;margin:0}
+header .sub{color:var(--muted);font-size:12px}
+header .spacer{flex:1}
+main{max-width:1400px;margin:0 auto;padding:16px;display:grid;gap:16px}
+section.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;min-width:0}
+section.card h2{font-size:15px;margin:0 0 10px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+section.card h2 .hint{font-weight:400;color:var(--muted);font-size:12px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+label{font-size:12px;color:var(--muted)}
+input[type=number],input[type=text],select{background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:5px;padding:5px 7px;font:inherit}
+input[type=number]{width:110px}
+input[type=range]{width:100%;accent-color:var(--accent)}
+button{background:var(--head);color:var(--ink);border:1px solid var(--line);border-radius:5px;padding:5px 10px;font:inherit;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:5px;overflow:hidden}
+.seg button{border:0;border-radius:0}
+.seg button.on{background:var(--accent);color:#fff}
+.scen-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.scen{border:1px solid var(--line);border-left:5px solid var(--sc);border-radius:6px;padding:10px;display:grid;gap:8px}
+.scen .top{display:flex;align-items:center;gap:8px}
+.scen .top input{flex:1;min-width:0;font-weight:600}
+.scen .meta{font-size:12px;color:var(--muted)}
+.scen .presets{display:flex;flex-wrap:wrap;gap:4px}
+.scen .presets button{font-size:11px;padding:2px 6px}
+.field{display:grid;gap:3px}
+.field .lab{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:9px;background:var(--head);border:1px solid var(--line);color:var(--muted)}
+.tag.hme{background:var(--warnbg);border-color:var(--warnline);color:var(--amber)}
+.warn{background:var(--warnbg);border:1px solid var(--warnline);border-radius:6px;padding:8px 10px;font-size:12px}
+.tbl-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{border:1px solid var(--line);padding:4px 8px;text-align:right;white-space:nowrap}
+th{background:var(--head);font-weight:600}
+td.l,th.l{text-align:left}
+td.wrap{white-space:normal}
+.g{color:var(--green);font-weight:600}.b{color:var(--blue);font-weight:600}.r{color:var(--red);font-weight:600}
+.dim{color:var(--muted)}
+.probe-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.probe{border:1px solid var(--line);border-top:4px solid var(--sc);border-radius:6px;padding:10px}
+.probe .big{font-size:26px;font-weight:700}
+.probe dl{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;margin:8px 0;font-size:13px}
+.probe dt{color:var(--muted)}
+.probe dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
+.effects{font-size:12px;display:grid;gap:4px;margin-top:6px}
+.effects div{padding:4px 6px;border-radius:4px;background:var(--head)}
+#chart{width:100%;height:auto;display:block}
+#chart text{fill:var(--muted);font-size:11px}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;margin-top:6px}
+.legend span::before{content:"";display:inline-block;width:14px;height:3px;background:var(--c);vertical-align:middle;margin-right:5px}
+details summary{cursor:pointer;font-weight:600}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:900px){.two{grid-template-columns:1fr}}
+.foot{color:var(--muted);font-size:12px}
+@media print{
+  header .spacer, header button, .noprint, input[type=range], .presets{display:none!important}
+  body{background:#fff;color:#000}
+  section.card{break-inside:avoid;border-color:#999}
+}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Blast Overpressure Calculator</h1>
+    <div class="sub">Kingery-Bulmash hemispherical surface burst · IATG 01.80 §6.2 / UN SaferGuard method · TNT equivalence</div>
+  </div>
+  <div class="spacer"></div>
+  <div class="seg noprint" title="Display units">
+    <button id="u-si" class="on">Metric</button><button id="u-imp">Imperial</button>
+  </div>
+  <button class="noprint" onclick="window.print()">Print</button>
+  <button class="noprint" id="themeBtn" title="Toggle theme">◐</button>
+</header>
+
+<main>
+  <section class="card">
+    <h2>Scenarios <span class="hint">Compare up to 4 charges side by side. Sliders are logarithmic. Type exact values in the boxes.</span></h2>
+    <div class="row noprint" style="margin-bottom:10px">
+      <button class="primary" id="addScen">+ Add scenario</button>
+      <label>Burst geometry
+        <select id="burst">
+          <option value="surface">Surface burst (hemispherical, KB)</option>
+          <option value="free">Free-air burst (approx. W ÷ 1.8)</option>
+        </select>
+      </label>
+      <button id="resetAll">Reset to defaults</button>
+    </div>
+    <div class="scen-grid" id="scens"></div>
+  </section>
+
+  <section class="card">
+    <h2>Point check at distance <span class="hint">Every blast parameter at one stand-off distance</span></h2>
+    <div class="row">
+      <div class="field" style="flex:1;min-width:240px">
+        <div class="lab"><label for="probeR">Distance from charge</label><span><input type="number" id="probeRn" step="any" min="0.1"> <span class="uDist"></span></span></div>
+        <input type="range" id="probeR" min="0" max="1000" step="1">
+      </div>
+    </div>
+    <div class="probe-grid" id="probe" style="margin-top:10px"></div>
+  </section>
+
+  <section class="card">
+    <h2>Overpressure vs distance <span class="hint">Incident (side-on) overpressure on log–log axes. The dashed line is the point-check distance.</span></h2>
+    <svg id="chart" viewBox="0 0 900 420" role="img" aria-label="Overpressure versus distance chart"></svg>
+    <div class="legend" id="legend"></div>
+  </section>
+
+  <div class="two">
+    <section class="card">
+      <h2>Range table <span class="hint">Same layout as your spreadsheet</span></h2>
+      <div class="row noprint" style="margin-bottom:8px">
+        <label style="flex:1;min-width:200px">Distances (<span class="uDist"></span>, comma-separated)
+          <input type="text" id="dists" style="width:100%">
+        </label>
+      </div>
+      <div class="row noprint" style="margin-bottom:8px">
+        <label>Green below <input type="number" id="bandB" step="0.1" style="width:70px"> psi</label>
+        <label>Red at/above <input type="number" id="bandR" step="0.1" style="width:70px"> psi</label>
+        <span class="dim" style="font-size:12px">(blue between)</span>
+        <button id="csv">Export CSV</button>
+      </div>
+      <div class="tbl-wrap"><table id="rangeTbl"></table></div>
+    </section>
+
+    <section class="card">
+      <h2>Stand-off distance to each threshold <span class="hint">Distance where incident overpressure falls to the stated value</span></h2>
+      <div class="tbl-wrap"><table id="standoffTbl"></table></div>
+      <p class="foot">“Closer than” means the threshold is only reached inside the valid KB range limit (Z &lt; 0.067 m/kg<sup>1/3</sup>, i.e. in or near the fireball).</p>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>Explosive library <span class="hint">TNT-equivalent factors. Edit any value. Changes are saved in this browser.</span></h2>
+    <div class="warn" style="margin-bottom:10px">
+      <b>Check these factors before relying on them.</b> Military and commercial values are typical published blast-equivalence values (UFC 3-340-02 Table 2-1 / ConWep). HME values are <b>indicative only</b>. Real performance varies widely with purity, density, mixing, particle size, confinement and charge size. For stand-off planning, use the upper end of the range. Check every factor against your organisation’s reference (AASTP-1 / IATG 01.80).
+    </div>
+    <div class="tbl-wrap"><table id="libTbl"></table></div>
+    <div class="row noprint" style="margin-top:8px">
+      <button id="addExpl">+ Add custom explosive</button>
+      <button id="resetLib">Restore default library</button>
+    </div>
+  </section>
+
+  <div class="two">
+    <section class="card">
+      <h2>Expected damage / effects by overpressure</h2>
+      <div class="tbl-wrap"><table id="dmgTbl"></table></div>
+    </section>
+    <section class="card">
+      <h2>Primary injury thresholds <span class="hint">UFC 3-340-02, Table 3-1</span></h2>
+      <div class="tbl-wrap"><table id="injTbl"></table></div>
+      <p class="foot">Lung lethality threshold is about 100 psi for 3 ms, or about 25 psi for 20 ms. Pressure and duration both matter. Lower pressures than shown may cause lung damage or death in children.</p>
+      <h2 style="margin-top:14px">Definitions</h2>
+      <div class="foot" style="color:var(--ink)">
+        <p><b>Shock wave</b>: a pressure pulse travelling faster than sound.<br>
+        <b>Positive phase</b>: the first outward pressure pulse. Pressure jumps almost instantly to its peak, then decays exponentially.<br>
+        <b>Negative phase</b>: the underpressure (partial vacuum) that follows the shock front.<br>
+        <b>Incident (side-on) pressure</b>: the shock overpressure in open, unobstructed air. This is the main value in the tables and chart.<br>
+        <b>Reflected pressure</b>: the overpressure on a surface facing the blast. The shock stops against the surface, so the pressure is higher (2× to 8× or more).<br>
+        <b>Dynamic pressure</b>: the drag force of the air flowing behind the shock wave.<br>
+        <b>Scaled distance Z</b> = R / W<sup>1/3</sup> (m/kg<sup>1/3</sup>), from Hopkinson-Cranz cube-root scaling.</p>
+      </div>
+    </section>
+  </div>
+
+  <section class="card foot">
+    <details>
+      <summary>Method, validity and limitations</summary>
+      <ul>
+        <li>The model uses the Kingery &amp; Bulmash (1984, ARBL-TR-02555) polynomial fits for a <b>hemispherical TNT surface burst</b>: log<sub>10</sub>Y = Σ C<sub>i</sub>U<sup>i</sup>, with U = C<sub>0</sub> + C<sub>1</sub>·log<sub>10</sub>Z. This is the method in IATG 01.80 §6.2 and the UN SaferGuard KB calculator. The coefficients were cross-checked against Swisdak’s (1994) simplified fits and agree within about 1%.</li>
+        <li>The KB fits are valid for 0.0674 ≤ Z ≤ 40 m/kg<sup>1/3</sup>. Outside that range the tool shows <i>italic</i> values. Incident pressure and impulse use Swisdak’s long-range fits (up to Z ≈ 198 and 159). Reflected pressure uses the ideal-gas normal-reflection relation. Arrival time and duration are left blank.</li>
+        <li>TNT equivalence: the pressure factor scales pressure, arrival time, duration and shock velocity. The impulse factor scales impulse.</li>
+        <li>The free-air option treats the charge as a surface burst of W/1.8 (assumes ground reflection factor 1.8). It is a first approximation only and ignores Mach-stem formation for low air bursts.</li>
+        <li>The model does not include fragmentation, casing effects, terrain, confinement, internal or channelled blasts, or reflections from nearby structures. Fragments often reach much further than the blast hazard distances.</li>
+        <li>Shock front velocity uses the Rankine-Hugoniot relation U = a<sub>0</sub>√(1 + 6P<sub>s</sub>/7P<sub>0</sub>), with a<sub>0</sub> = 340.3 m/s and P<sub>0</sub> = 101.325 kPa.</li>
+        <li>This tool is for planning and training. It does not replace qualified assessment.</li>
+      </ul>
+    </details>
+  </section>
+</main>
+
+<script>
+"use strict";
+/* ================= Kingery-Bulmash engine (hemispherical surface burst, SI) ================= */
+// Each entry: [Zmin, Zmax, C0, C1, [K0..Kn]]  -> U = C0 + C1*log10(Z); log10(Y) = sum Ki U^i
+const KB = {
+  Pso:[[0.0674,40,-0.214362789151,1.35034249993,[2.78076916577,-1.6958988741,-0.154159376846,0.514060730593,0.0988554365274,-0.293912623038,-0.0268112345019,0.109097496421,0.00162846756311,-0.0214631030242,0.0001456723382,0.00167847752266]]],
+  Pr:[[0.0674,40,-0.240657322658,1.36637719229,[3.40283217581,-2.21030870597,-0.218536586295,0.895319589372,0.24989009775,-0.569249436807,-0.11791682383,0.224131161411,0.0245620259375,-0.0455116002694,-0.00190930738887,0.00361471193389]]],
+  is:[[0.0674,0.955,2.06761908721,3.0760329666,[2.52455620925,-0.502992763686,0.171335645235,0.0450176963051,-0.0118964626402]],
+      [0.955,40,-1.94708846747,2.40697745406,[1.67281645863,-0.384519026965,-0.0260816706301,0.00595798753822,0.014544526107,-0.00663289334734,-0.00284189327204,0.0013644816227]]],
+  ir:[[0.0674,40,-0.246208804814,1.33422049854,[2.70588058032,-0.949516092853,0.112136118689,-0.0250659183287]]],
+  ta:[[0.0674,40,-0.202425716178,1.37784223635,[-0.0591634288046,1.35706496258,0.052492798645,-0.196563954086,-0.0601770052288,0.0696360270891,0.0215297490092,-0.0161658930785,-0.00232531970294,0.00147752067524]]],
+  td:[[0.178,1.01,1.92946154068,5.25099193925,[-0.614227603559,0.130143717675,0.134872511954,0.0391574276906,-0.00475933664702,-0.00428144598008]],
+      [1.01,2.78,-2.12492525216,9.2996288611,[0.315409245784,-0.0297944268976,0.030632954288,0.0183405574086,-0.0173964666211,-0.00106321963633,0.00562060030977,0.0001618217499,-0.0006860188944]],
+      [2.78,40,-3.53626218091,3.46349745571,[0.686906642409,0.0933035304009,-0.0005849420883,-0.00226884995013,-0.00295908591505,0.00148029868929]]]
+};
+const Z_MIN = 0.0674, Z_MAX = 40, P0 = 101.325, A0 = 340.3, KPA_PER_PSI = 6.894757;
+
+function kbEval(key, Z){
+  const segs = KB[key];
+  if (Z < segs[0][0] || Z > segs[segs.length-1][1]) return NaN;
+  for (const [lo, hi, c0, c1, k] of segs){
+    if (Z <= hi){
+      const U = c0 + c1*Math.log10(Z);
+      let s = 0, Ui = 1;
+      for (const ki of k){ s += ki*Ui; Ui *= U; }
+      return Math.pow(10, s);
+    }
+  }
+  return NaN;
+}
+// Swisdak (1994) long-range extensions (ln form), used only beyond Z = 40
+// Slopes from Swisdak; anchored to the KB value at Z = 40 so curves are continuous.
+function psoFar(Z){ return Z <= 198.5 ? kbEval('Pso', Z_MAX)*Math.pow(Z/Z_MAX, -1.4066) : NaN; }
+function isFar(Z){ return Z <= 158.7 ? kbEval('is', Z_MAX)*Math.pow(Z/Z_MAX, -1.062) : NaN; }
+function reflectRH(ps){ return 2*ps*(7*P0 + 4*ps)/(7*P0 + ps); } // ideal-gas normal reflection
+
+/** Incident overpressure (kPa) at scaled distance Z. ext=true if beyond KB range. */
+function psoZ(Z){
+  if (Z < Z_MIN) return {v:NaN, ext:false};
+  if (Z <= Z_MAX) return {v:kbEval('Pso', Z), ext:false};
+  return {v:psoFar(Z), ext:true};
+}
+
+/**
+ * All blast parameters for a charge.
+ * Wp/Wi: TNT-equivalent mass (kg) for pressure / impulse; R metres.
+ */
+function blast(Wp, Wi, R){
+  const cp = Math.cbrt(Wp), ci = Math.cbrt(Wi);
+  const Zp = R/cp, Zi = R/ci;
+  const out = {Zp, Zi, ext:false, tooClose: Zp < Z_MIN};
+  const p = psoZ(Zp); out.Pso = p.v; out.ext = p.ext;
+  if (Zp <= Z_MAX){
+    out.Pr = kbEval('Pr', Zp);
+    out.ta = kbEval('ta', Zp)*cp;
+    out.td = kbEval('td', Zp)*cp;
+  } else {
+    out.Pr = isNaN(out.Pso) ? NaN : reflectRH(out.Pso);
+    out.ta = NaN; out.td = NaN;
+  }
+  if (Zi <= Z_MAX){
+    out.is = kbEval('is', Zi)*ci;
+    out.ir = kbEval('ir', Zi)*ci;
+  } else {
+    out.is = isFar(Zi)*ci; out.ir = NaN; out.ext = true;
+  }
+  out.U = isNaN(out.Pso) ? NaN : A0*Math.sqrt(1 + 6*out.Pso/(7*P0));
+  return out;
+}
+
+/** Distance (m) where incident overpressure equals targetKpa. Returns {R, flag:'' | 'lt' | 'gt'} */
+function standoff(Wp, targetKpa){
+  const cp = Math.cbrt(Wp);
+  const pHi = psoZ(Z_MIN).v, Zfar = 198.5, pLo = psoZ(Zfar).v;
+  if (targetKpa >= pHi) return {R: Z_MIN*cp, flag:'lt'};
+  if (targetKpa <= pLo) return {R: Zfar*cp, flag:'gt'};
+  let a = Math.log(Z_MIN), b = Math.log(Zfar);
+  for (let i=0;i<80;i++){
+    const m = (a+b)/2;
+    if (psoZ(Math.exp(m)).v > targetKpa) a = m; else b = m;
+  }
+  const Z = Math.exp((a+b)/2);
+  return {R: Z*cp, flag: Z > Z_MAX ? 'ext' : ''};
+}
+
+/* ================= Reference data ================= */
+// cat: MIL / COM / HME. p = pressure factor, i = impulse factor, lo/hi = plausible range of factor
+const DEFAULT_LIB = [
+  {id:'tnt',   name:'TNT', cat:'MIL', p:1.00, i:1.00, note:'Reference explosive'},
+  {id:'c4',    name:'Composition C-4', cat:'MIL', p:1.37, i:1.19, note:'UFC 3-340-02'},
+  {id:'compb', name:'Composition B', cat:'MIL', p:1.11, i:0.98, note:'UFC 3-340-02'},
+  {id:'compa3',name:'Composition A-3', cat:'MIL', p:1.09, i:1.07, note:'UFC 3-340-02'},
+  {id:'semtex',name:'Semtex (1A / H)', cat:'MIL', p:1.25, i:1.15, lo:1.15, hi:1.35, note:'PETN/RDX plastic; indicative'},
+  {id:'pe4',   name:'PE4 / PE7 (RDX plastic)', cat:'MIL', p:1.20, i:1.10, lo:1.10, hi:1.37, note:'Indicative; similar to C-4'},
+  {id:'petn',  name:'PETN', cat:'MIL', p:1.27, i:1.11, note:'ConWep'},
+  {id:'rdx',   name:'RDX', cat:'MIL', p:1.14, i:1.09, note:'Indicative'},
+  {id:'hmx',   name:'HMX', cat:'MIL', p:1.25, i:1.10, note:'Indicative'},
+  {id:'cyclo', name:'Cyclotol 70/30', cat:'MIL', p:1.14, i:1.09, note:'UFC 3-340-02'},
+  {id:'octol', name:'Octol 70/30', cat:'MIL', p:1.06, i:1.06, note:'UFC 3-340-02'},
+  {id:'h6',    name:'H-6', cat:'MIL', p:1.38, i:1.15, note:'UFC 3-340-02'},
+  {id:'hbx1',  name:'HBX-1', cat:'MIL', p:1.17, i:1.16, note:'UFC 3-340-02'},
+  {id:'hbx3',  name:'HBX-3', cat:'MIL', p:1.14, i:0.97, note:'UFC 3-340-02'},
+  {id:'minol', name:'Minol II', cat:'MIL', p:1.20, i:1.11, note:'UFC 3-340-02'},
+  {id:'pent',  name:'Pentolite 50/50', cat:'MIL', p:1.42, i:1.00, note:'UFC 3-340-02 (5–100 psi)'},
+  {id:'picr',  name:'Picratol', cat:'MIL', p:0.90, i:0.93, note:'UFC 3-340-02'},
+  {id:'tetryl',name:'Tetryl', cat:'MIL', p:1.07, i:1.07, note:'UFC 3-340-02'},
+  {id:'tetryt',name:'Tetrytol 75/25', cat:'MIL', p:1.06, i:1.06, note:'UFC 3-340-02'},
+  {id:'trit',  name:'Tritonal', cat:'MIL', p:1.07, i:0.96, note:'UFC 3-340-02'},
+  {id:'amatol',name:'Amatol 80/20', cat:'MIL', p:0.99, i:0.98, note:'Indicative'},
+  {id:'anfo',  name:'ANFO (commercial 94/6)', cat:'COM', p:0.82, i:0.82, lo:0.74, hi:0.87, note:'ConWep 0.82; literature 0.74–0.87'},
+  {id:'emul',  name:'Emulsion / watergel (commercial)', cat:'COM', p:0.80, i:0.80, lo:0.60, hi:0.90, note:'Product dependent'},
+  {id:'dyn',   name:'Dynamite (NG based)', cat:'COM', p:0.90, i:0.90, lo:0.60, hi:1.10, note:'Grade dependent'},
+  {id:'nm',    name:'Nitromethane', cat:'COM', p:1.00, i:1.00, lo:0.90, hi:1.10, note:'Indicative'},
+  {id:'bp',    name:'Black powder', cat:'COM', p:0.50, i:0.50, lo:0.40, hi:0.55, note:'Deflagrates; strongly confinement dependent'},
+  {id:'tatp',  name:'TATP', cat:'HME', p:0.80, i:0.80, lo:0.70, hi:0.88, note:'Indicative; purity dependent'},
+  {id:'hmtd',  name:'HMTD', cat:'HME', p:0.74, i:0.74, lo:0.60, hi:0.80, note:'Indicative'},
+  {id:'ianfo', name:'Improvised ANFO', cat:'HME', p:0.75, i:0.75, lo:0.50, hi:0.87, note:'Mixing/prill quality dependent'},
+  {id:'anal',  name:'AN / Aluminium (ammonal type)', cat:'HME', p:0.90, i:0.90, lo:0.65, hi:1.10, note:'Al content & particle size dependent'},
+  {id:'an',    name:'Ammonium nitrate (neat)', cat:'HME', p:0.42, i:0.42, lo:0.32, hi:0.55, note:'Large-scale/accidental; very variable'},
+  {id:'un',    name:'Urea nitrate', cat:'HME', p:0.75, i:0.75, lo:0.60, hi:0.85, note:'Indicative'},
+  {id:'chlor', name:'Chlorate / perchlorate mixtures', cat:'HME', p:0.50, i:0.50, lo:0.30, hi:0.80, note:'Indicative; highly variable'},
+];
+const CAT_LABEL = {MIL:'Military', COM:'Commercial', HME:'Homemade (HME)', CUS:'Custom'};
+
+// Damage table (from user's sheet). t = lower psi bound, t2 = upper bound (for ranges)
+const DAMAGE = [
+  {t:0.04, txt:'Loud noise (143 dB); sonic boom glass failure.'},
+  {t:0.15, txt:'Typical pressure for glass failure.'},
+  {t:0.4,  txt:'Limited minor structural damage.'},
+  {t:0.5, t2:1.0, txt:'Windows usually shattered; some window frame damage.'},
+  {t:0.7,  txt:'Minor damage to house structures.'},
+  {t:1,    txt:'Partial demolition of houses; made uninhabitable.', hum:'Light injuries from fragments occur'},
+  {t:1.0, t2:2.0, txt:'Corrugated metal panels fail and buckle. Housing wood panels blown in.'},
+  {t:1.0, t2:8.0, txt:'Range for slight to serious laceration injuries from flying glass and other missiles.', isHum:true},
+  {t:2,    txt:'Partial collapse of walls and roofs of houses.', hum:'People injured by flying glass and debris'},
+  {t:2.0, t2:3.0, txt:'Non-reinforced concrete or cinder block walls shattered.'},
+  {t:2.4, t2:12.2, txt:'Range for 1–90% eardrum rupture among exposed populations.', isHum:true},
+  {t:2.5,  txt:'50% destruction of home brickwork.'},
+  {t:3,    txt:'Steel frame buildings distorted and pulled away from foundation.', hum:'Serious injuries are common, fatalities may occur'},
+  {t:5,    txt:'Wooden utility poles snapped.', hum:'Injuries are universal, fatalities are widespread'},
+  {t:5.0, t2:7.0, txt:'Nearly complete destruction of houses.'},
+  {t:7,    txt:'Loaded train cars overturned.'},
+  {t:9,    txt:'Loaded train box cars demolished.'},
+  {t:10,   txt:'Probable total building destruction.', hum:'Most people are killed'},
+  {t:14.5, t2:29.0, txt:'Range for 1–99% fatalities among exposed populations due to direct blast effects.', hum:'Fatalities approach 100%', isHum:true},
+];
+const INJURY = [
+  {eff:'Eardrum rupture', lik:'Threshold', psi:5},
+  {eff:'Eardrum rupture', lik:'50%', psi:15},
+  {eff:'Lung damage', lik:'Threshold', psi:30},
+  {eff:'Lung damage', lik:'50%', psi:80},
+  {eff:'Lethality', lik:'Threshold', psi:100},
+  {eff:'Lethality', lik:'50%', psi:130},
+  {eff:'Lethality', lik:'Near 100%', psi:200},
+];
+// Mass presets (kg TNT) — common threat-category sizes (from public bomb-threat stand-off charts)
+const PRESETS = [
+  ['Pipe bomb', 2.3], ['Vest', 9], ['Briefcase', 23], ['Car', 227], ['SUV/Van', 454],
+  ['Small truck', 1814], ['Large truck', 4536], ['Semi-trailer', 27216]
+];
+const COLORS = ['--s1','--s2','--s3','--s4'];
+const DEFAULT_DISTS = '5,10,20,30,35,37.5,40,50,60,70,75,80,90,100,110,120';
+
+/* ================= State ================= */
+const LS = {
+  get(k, d){ try { const v = localStorage.getItem('blast.'+k); return v ? JSON.parse(v) : d; } catch(e){ return d; } },
+  set(k, v){ try { localStorage.setItem('blast.'+k, JSON.stringify(v)); } catch(e){} }
+};
+const clone = o => JSON.parse(JSON.stringify(o));
+function defaultScens(){
+  return [
+    {name:'Scenario A', expl:'tnt', mass:15,   p:1, i:1},
+    {name:'Scenario B', expl:'tnt', mass:100,  p:1, i:1},
+    {name:'Scenario C', expl:'tnt', mass:1000, p:1, i:1},
+  ];
+}
+let lib = LS.get('lib', clone(DEFAULT_LIB));
+let st = Object.assign({
+  scens: defaultScens(), burst:'surface', probe:50, dists:DEFAULT_DISTS, bandB:2, bandR:3, units:'si'
+}, LS.get('state', {}));
+const save = () => { LS.set('state', st); LS.set('lib', lib); };
+
+/* ================= Units ================= */
+const M_PER_FT = 0.3048, KG_PER_LB = 0.45359237;
+const imp = () => st.units === 'imp';
+const dOut = m => imp() ? m/M_PER_FT : m;      // metres -> display
+const dIn  = v => imp() ? v*M_PER_FT : v;      // display -> metres
+const mOut = kg => imp() ? kg/KG_PER_LB : kg;
+const mIn  = v => imp() ? v*KG_PER_LB : v;
+const dU = () => imp() ? 'ft' : 'm';
+const mU = () => imp() ? 'lb' : 'kg';
+
+/* ================= Helpers ================= */
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function fmt(x, d=2){
+  if (x === undefined || isNaN(x)) return '—';
+  if (Math.abs(x) >= 10000) return Math.round(x).toLocaleString();
+  return x.toFixed(d);
+}
+function sig(x){ // ~3-4 significant figures
+  if (isNaN(x)) return '—';
+  const a = Math.abs(x);
+  if (a >= 1000) return Math.round(x).toLocaleString();
+  if (a >= 100) return x.toFixed(1);
+  if (a >= 10) return x.toFixed(2);
+  if (a >= 1) return x.toFixed(2);
+  return x.toFixed(3);
+}
+const band = psi => psi < st.bandB ? 'g' : (psi < st.bandR ? 'b' : 'r');
+const libById = id => lib.find(e => e.id === id);
+const color = i => getComputedStyle(document.documentElement).getPropertyValue(COLORS[i % 4]).trim();
+const burstFactor = () => st.burst === 'free' ? 1/1.8 : 1;
+function effW(s){ // TNT-equivalent masses actually fed into the surface-burst KB model
+  const f = burstFactor();
+  return {Wp: s.mass*s.p*f, Wi: s.mass*s.i*f};
+}
+// log slider mapping
+const MASS_MIN = 0.1, MASS_MAX = 50000, R_MIN = 1, R_MAX = 3000;
+const toSlider = (v, lo, hi) => Math.round(1000*Math.log(v/lo)/Math.log(hi/lo));
+const fromSlider = (t, lo, hi) => lo*Math.pow(hi/lo, t/1000);
+const nice = v => v >= 100 ? Math.round(v) : v >= 10 ? Math.round(v*10)/10 : Math.round(v*100)/100;
+
+/* ================= Rendering ================= */
+function renderScens(){
+  const box = $('scens');
+  box.innerHTML = '';
+  st.scens.forEach((s, idx) => {
+    const e = libById(s.expl) || lib[0];
+    const lo = e.lo ?? Math.max(0.1, e.p - 0.3), hi = e.hi ?? e.p + 0.3;
+    const {Wp, Wi} = effW(s);
+    const div = document.createElement('div');
+    div.className = 'scen';
+    div.style.setProperty('--sc', `var(${COLORS[idx % 4]})`);
+    const groups = ['MIL','COM','HME','CUS'].map(c => {
+      const items = lib.filter(x => (x.cat||'CUS') === c);
+      if (!items.length) return '';
+      return `<optgroup label="${CAT_LABEL[c]}">${items.map(x => `<option value="${esc(x.id)}" ${x.id===s.expl?'selected':''}>${esc(x.name)}</option>`).join('')}</optgroup>`;
+    }).join('');
+    div.innerHTML = `
+      <div class="top">
+        <input type="text" value="${esc(s.name)}" data-k="name" aria-label="Scenario name">
+        ${st.scens.length > 1 ? '<button data-act="del" title="Remove scenario" class="noprint">✕</button>' : ''}
+      </div>
+      <div class="field">
+        <label>Explosive type ${e.cat==='HME' ? '<span class="tag hme">HME – indicative</span>' : `<span class="tag">${CAT_LABEL[e.cat]||'Custom'}</span>`}</label>
+        <select data-k="expl">${groups}</select>
+        <span class="meta">${esc(e.note||'')}${e.lo!=null ? ` · range ${e.lo}–${e.hi}` : ''}</span>
+      </div>
+      <div class="field">
+        <div class="lab"><label>Charge mass</label><span><input type="number" step="any" min="0.01" data-k="mass" value="${nice(mOut(s.mass))}"> ${mU()}</span></div>
+        <input type="range" min="0" max="1000" data-k="massR" value="${toSlider(s.mass, MASS_MIN, MASS_MAX)}">
+        <div class="presets noprint">${PRESETS.map(([n,kg]) => `<button data-preset="${kg}" title="${nice(mOut(kg))} ${mU()}">${n}</button>`).join('')}</div>
+      </div>
+      <div class="field">
+        <div class="lab"><label>TNT eq. – pressure</label><span><input type="number" step="0.01" min="0.01" data-k="p" value="${s.p}" style="width:80px"></span></div>
+        <input type="range" min="${lo}" max="${hi}" step="0.01" data-k="pR" value="${s.p}">
+      </div>
+      <div class="field">
+        <div class="lab"><label>TNT eq. – impulse</label><span><input type="number" step="0.01" min="0.01" data-k="i" value="${s.i}" style="width:80px"></span></div>
+        <input type="range" min="${lo}" max="${hi}" step="0.01" data-k="iR" value="${s.i}">
+      </div>
+      <div class="meta">TNT equivalent: <b>${sig(mOut(Wp))} ${mU()}</b> (pressure) · <b>${sig(mOut(Wi))} ${mU()}</b> (impulse)${st.burst==='free'?' <i>— includes ÷1.8 free-air factor</i>':''}</div>
+    `;
+    div.addEventListener('input', ev => onScenInput(idx, ev, false));
+    div.addEventListener('change', ev => onScenInput(idx, ev, true));
+    div.addEventListener('click', ev => {
+      const t = ev.target;
+      if (t.dataset.act === 'del'){ st.scens.splice(idx,1); update(true); }
+      if (t.dataset.preset){ st.scens[idx].mass = +t.dataset.preset; update(true); }
+    });
+    box.appendChild(div);
+  });
+  $('addScen').disabled = st.scens.length >= 4;
+}
+
+function onScenInput(idx, ev, committed){
+  const t = ev.target, k = t.dataset.k, s = st.scens[idx];
+  if (!k) return;
+  const v = parseFloat(t.value);
+  switch(k){
+    case 'name': s.name = t.value; save(); renderLegend(); renderTables(); renderProbe(); return;
+    case 'expl': { const e = libById(t.value); s.expl = t.value; s.p = e.p; s.i = e.i; update(true); return; }
+    case 'mass': if (v > 0){ s.mass = mIn(v); } break;
+    case 'massR': s.mass = nice(fromSlider(+t.value, MASS_MIN, MASS_MAX)); break;
+    case 'p': if (v > 0) s.p = v; break;
+    case 'i': if (v > 0) s.i = v; break;
+    case 'pR': s.p = v; break;
+    case 'iR': s.i = v; break;
+  }
+  // keep paired controls in sync without rebuilding (preserves focus while dragging/typing)
+  const card = t.closest('.scen');
+  const set = (sel, val) => { const el = card.querySelector(sel); if (el && el !== t) el.value = val; };
+  set('[data-k=mass]', nice(mOut(s.mass)));
+  set('[data-k=massR]', toSlider(s.mass, MASS_MIN, MASS_MAX));
+  set('[data-k=p]', s.p); set('[data-k=pR]', s.p);
+  set('[data-k=i]', s.i); set('[data-k=iR]', s.i);
+  const {Wp, Wi} = effW(s);
+  card.querySelector('.meta:last-child').innerHTML =
+    `TNT equivalent: <b>${sig(mOut(Wp))} ${mU()}</b> (pressure) · <b>${sig(mOut(Wi))} ${mU()}</b> (impulse)${st.burst==='free'?' <i>— includes ÷1.8 free-air factor</i>':''}`;
+  update(false);
+}
+
+function effectsFor(psi){
+  let bld = null, hum = null;
+  const ranges = [];
+  for (const d of DAMAGE){
+    if (d.t2 != null){ if (psi >= d.t && psi <= d.t2) ranges.push(d.txt); continue; }
+    if (psi >= d.t){ bld = d.txt; if (d.hum) hum = d.hum; }
+  }
+  const inj = INJURY.filter(x => psi >= x.psi).map(x => `${x.eff} – ${x.lik} (${x.psi} psi)`);
+  return {bld, hum, ranges, inj: inj.length ? inj[inj.length-1] : null};
+}
+
+function renderProbe(){
+  const R = st.probe;
+  $('probeRn').value = nice(dOut(R));
+  $('probeR').value = toSlider(R, R_MIN, R_MAX);
+  $('probe').innerHTML = st.scens.map((s, idx) => {
+    const {Wp, Wi} = effW(s);
+    const b = blast(Wp, Wi, R);
+    const psi = b.Pso / KPA_PER_PSI;
+    const ef = isNaN(psi) ? null : effectsFor(psi);
+    const it = b.ext ? ' style="font-style:italic"' : '';
+    const imps = v => isNaN(v) ? '—' : `${sig(v)} kPa·ms`;
+    return `<div class="probe" style="--sc:var(${COLORS[idx%4]})">
+      <div style="font-weight:600">${esc(s.name)} <span class="dim" style="font-weight:400">– ${sig(mOut(s.mass))} ${mU()} ${esc((libById(s.expl)||{}).name||'')}</span></div>
+      ${b.tooClose ? `<div class="warn" style="margin-top:6px">Too close: Z = ${b.Zp.toFixed(3)} m/kg<sup>1/3</sup> is below the valid KB range (0.0674). The point is in or near the fireball.</div>` : `
+      <div class="big ${band(psi)}"${it}>${sig(psi)} psi</div>
+      <div class="dim"${it}>${sig(b.Pso)} kPa · ${sig(b.Pso/100)} bar${b.ext?' · extended-range estimate':''}</div>
+      <dl>
+        <dt>Scaled distance Z</dt><dd>${b.Zp.toFixed(3)} m/kg<sup>1/3</sup></dd>
+        <dt>Reflected pressure</dt><dd>${sig(b.Pr)} kPa (${sig(b.Pr/KPA_PER_PSI)} psi)</dd>
+        <dt>Incident impulse</dt><dd>${imps(b.is)}</dd>
+        <dt>Reflected impulse</dt><dd>${imps(b.ir)}</dd>
+        <dt>Time of arrival</dt><dd>${isNaN(b.ta)?'—':sig(b.ta)+' ms'}</dd>
+        <dt>Positive phase duration</dt><dd>${isNaN(b.td)?'—':sig(b.td)+' ms'}</dd>
+        <dt>Shock front velocity</dt><dd>${isNaN(b.U)?'—':Math.round(imp()?b.U/M_PER_FT:b.U)+(imp()?' ft/s':' m/s')}</dd>
+      </dl>
+      <div class="effects">
+        ${ef && ef.bld ? `<div><b>Structures:</b> ${esc(ef.bld)}</div>` : '<div><b>Structures:</b> below 0.04 psi: negligible</div>'}
+        ${ef && ef.hum ? `<div><b>People:</b> ${esc(ef.hum)}</div>` : ''}
+        ${ef && ef.inj ? `<div><b>Primary injury:</b> ${esc(ef.inj)}</div>` : ''}
+        ${ef ? ef.ranges.map(r => `<div>${esc(r)}</div>`).join('') : ''}
+      </div>`}
+    </div>`;
+  }).join('');
+}
+
+function parseDists(){
+  return st.dists.split(/[,;\s]+/).map(parseFloat).filter(v => v > 0).map(dIn);
+}
+
+function renderTables(){
+  const dists = parseDists();
+  // Range table
+  let h = `<thead><tr><th class="l"></th>${st.scens.map((s,i) => `<th colspan="2" style="border-bottom:3px solid var(${COLORS[i%4]})">${esc(s.name)}<br><span class="dim" style="font-weight:400">${sig(mOut(s.mass))} ${mU()} ${esc((libById(s.expl)||{}).name||'')}</span></th>`).join('')}</tr>
+    <tr><th class="l"></th>${st.scens.map(() => '<th>kPa</th><th>PSI</th>').join('')}</tr></thead><tbody>`;
+  for (const R of dists){
+    h += `<tr><td class="l"><b>${nice(dOut(R))}${dU()}</b></td>`;
+    for (const s of st.scens){
+      const {Wp, Wi} = effW(s);
+      const b = blast(Wp, Wi, R);
+      const psi = b.Pso / KPA_PER_PSI;
+      const it = b.ext ? ' style="font-style:italic"' : '';
+      h += isNaN(psi) ? `<td class="dim">${b.tooClose?'too close':'—'}</td><td class="dim">—</td>`
+                      : `<td${it}>${fmt(b.Pso)}</td><td class="${band(psi)}"${it}>${fmt(psi)}</td>`;
+    }
+    h += '</tr>';
+  }
+  $('rangeTbl').innerHTML = h + '</tbody>';
+
+  // Standoff table
+  const rows = [];
+  DAMAGE.forEach(d => { if (d.t2 == null) rows.push({psi:d.t, lbl:d.txt + (d.hum ? ' / ' + d.hum : '')}); });
+  INJURY.forEach(x => rows.push({psi:x.psi, lbl:`${x.eff} – ${x.lik}`, inj:true}));
+  rows.sort((a,b) => a.psi - b.psi);
+  let s2 = `<thead><tr><th>psi</th><th class="l">Effect</th>${st.scens.map((s,i) => `<th style="border-bottom:3px solid var(${COLORS[i%4]})">${esc(s.name)}</th>`).join('')}</tr></thead><tbody>`;
+  for (const r of rows){
+    s2 += `<tr><td class="${band(r.psi)}">${r.psi}</td><td class="l wrap" style="min-width:200px">${esc(r.lbl)}</td>`;
+    for (const s of st.scens){
+      const {Wp} = effW(s);
+      const so = standoff(Wp, r.psi*KPA_PER_PSI);
+      const v = `${sig(dOut(so.R))} ${dU()}`;
+      s2 += so.flag === 'lt' ? `<td class="dim">&lt; ${v}</td>` : so.flag === 'gt' ? `<td class="dim">&gt; ${v}</td>`
+          : `<td${so.flag==='ext'?' style="font-style:italic"':''}>${v}</td>`;
+    }
+    s2 += '</tr>';
+  }
+  $('standoffTbl').innerHTML = s2 + '</tbody>';
+}
+
+function renderLegend(){
+  $('legend').innerHTML = st.scens.map((s,i) => `<span style="--c:var(${COLORS[i%4]})">${esc(s.name)} (${sig(mOut(s.mass))} ${mU()})</span>`).join('')
+    + '<span class="dim" style="--c:transparent">Dashed horizontals = effect thresholds</span>';
+}
+
+function renderChart(){
+  const W = 900, H = 420, m = {l:58, r:16, t:12, b:40};
+  const pw = W - m.l - m.r, ph = H - m.t - m.b;
+  // distance domain (display units)
+  const maxW = Math.max(...st.scens.map(s => effW(s).Wp));
+  const minW = Math.min(...st.scens.map(s => effW(s).Wp));
+  let xLo = Math.max(0.1, Z_MIN*Math.cbrt(minW)*1.05), xHi = Math.min(198*Math.cbrt(maxW), Math.max(st.probe*2, 40*Math.cbrt(maxW)));
+  xLo = Math.pow(10, Math.floor(Math.log10(dOut(xLo)))); xHi = Math.pow(10, Math.ceil(Math.log10(dOut(xHi))));
+  const yLo = 0.1, yHi = 1000; // psi
+  const X = d => m.l + pw*(Math.log10(d) - Math.log10(xLo))/(Math.log10(xHi) - Math.log10(xLo));
+  const Y = p => m.t + ph*(1 - (Math.log10(p) - Math.log10(yLo))/(Math.log10(yHi) - Math.log10(yLo)));
+  let g = '';
+  const lineC = getComputedStyle(document.documentElement).getPropertyValue('--line');
+  // grid
+  for (let e = Math.log10(xLo); e <= Math.log10(xHi); e++){
+    for (let k=1;k<10;k++){
+      const v = k*Math.pow(10,e); if (v > xHi) break;
+      g += `<line x1="${X(v)}" x2="${X(v)}" y1="${m.t}" y2="${m.t+ph}" stroke="${lineC}" stroke-width="${k===1?1:0.4}"/>`;
+      if (k===1 || (k===2||k===5)) g += `<text x="${X(v)}" y="${H-m.b+15}" text-anchor="middle">${v>=1?v:v.toFixed(1)}</text>`;
+    }
+  }
+  for (let e = -1; e <= 3; e++){
+    for (let k=1;k<10;k++){
+      const v = k*Math.pow(10,e); if (v > yHi) break;
+      g += `<line x1="${m.l}" x2="${m.l+pw}" y1="${Y(v)}" y2="${Y(v)}" stroke="${lineC}" stroke-width="${k===1?1:0.4}"/>`;
+      if (k===1 || k===2 || k===5) g += `<text x="${m.l-6}" y="${Y(v)+4}" text-anchor="end">${v}</text>`;
+    }
+  }
+  g += `<text x="${m.l+pw/2}" y="${H-6}" text-anchor="middle">Distance (${dU()})</text>`;
+  g += `<text transform="translate(14 ${m.t+ph/2}) rotate(-90)" text-anchor="middle">Incident overpressure (psi)</text>`;
+  // thresholds
+  const thr = [[1,'1 psi'],[2,'2 psi'],[3,'3 psi'],[5,'5 psi'],[15,'15 eardrum 50%'],[30,'30 lung thr.'],[100,'100 lethal thr.']];
+  for (const [p,l] of thr){
+    const c = p < st.bandB ? 'var(--green)' : p < st.bandR ? 'var(--blue)' : 'var(--red)';
+    g += `<line x1="${m.l}" x2="${m.l+pw}" y1="${Y(p)}" y2="${Y(p)}" stroke="${c}" stroke-dasharray="5 4" stroke-width="1" opacity=".8"/>`;
+    g += `<text x="${m.l+pw-4}" y="${Y(p)-3}" text-anchor="end" style="fill:${c}">${l}</text>`;
+  }
+  // curves
+  g += `<clipPath id="clip"><rect x="${m.l}" y="${m.t}" width="${pw}" height="${ph}"/></clipPath><g clip-path="url(#clip)">`;
+  st.scens.forEach((s, i) => {
+    const {Wp, Wi} = effW(s);
+    let dIn_ = '', dExt = '';
+    const N = 240;
+    for (let k=0;k<=N;k++){
+      const dd = xLo*Math.pow(xHi/xLo, k/N), R = dIn(dd);
+      const b = blast(Wp, Wi, R); const psi = b.Pso/KPA_PER_PSI;
+      if (isNaN(psi)) continue;
+      const pt = `${X(dd).toFixed(1)},${Y(psi).toFixed(1)} `;
+      if (!b.ext) dIn_ += pt; else { if (!dExt && dIn_) dExt = dIn_.trim().split(' ').pop() + ' '; dExt += pt; }
+    }
+    const c = color(i);
+    if (dIn_) g += `<polyline points="${dIn_}" fill="none" stroke="${c}" stroke-width="2.5"/>`;
+    if (dExt) g += `<polyline points="${dExt}" fill="none" stroke="${c}" stroke-width="2" stroke-dasharray="2 3"/>`;
+  });
+  // probe line
+  const pd = dOut(st.probe);
+  if (pd >= xLo && pd <= xHi){
+    g += `<line x1="${X(pd)}" x2="${X(pd)}" y1="${m.t}" y2="${m.t+ph}" stroke="var(--ink)" stroke-dasharray="6 4" stroke-width="1.2"/>`;
+    st.scens.forEach((s,i) => {
+      const {Wp, Wi} = effW(s); const b = blast(Wp, Wi, st.probe); const psi = b.Pso/KPA_PER_PSI;
+      if (!isNaN(psi) && psi >= yLo && psi <= yHi) g += `<circle cx="${X(pd)}" cy="${Y(psi)}" r="4.5" fill="${color(i)}" stroke="var(--panel)" stroke-width="1.5"/>`;
+    });
+  }
+  g += '</g>';
+  g += `<rect x="${m.l}" y="${m.t}" width="${pw}" height="${ph}" fill="none" stroke="${lineC}"/>`;
+  $('chart').innerHTML = g;
+}
+
+function renderLib(){
+  let h = `<thead><tr><th class="l">Explosive</th><th class="l">Category</th><th>Pressure factor</th><th>Impulse factor</th><th>Range</th><th class="l">Notes / source</th><th class="noprint"></th></tr></thead><tbody>`;
+  lib.forEach((e, idx) => {
+    h += `<tr data-idx="${idx}">
+      <td class="l"><input type="text" data-f="name" value="${esc(e.name)}" style="width:220px"></td>
+      <td class="l"><select data-f="cat">${Object.keys(CAT_LABEL).map(c => `<option value="${c}" ${c===(e.cat||'CUS')?'selected':''}>${CAT_LABEL[c]}</option>`).join('')}</select></td>
+      <td><input type="number" step="0.01" min="0.01" data-f="p" value="${e.p}" style="width:80px"></td>
+      <td><input type="number" step="0.01" min="0.01" data-f="i" value="${e.i}" style="width:80px"></td>
+      <td class="dim">${e.lo!=null ? `${e.lo}–${e.hi}` : ''}</td>
+      <td class="l wrap"><input type="text" data-f="note" value="${esc(e.note||'')}" style="width:100%;min-width:180px"></td>
+      <td class="noprint">${e.id==='tnt' ? '' : '<button data-del="1" title="Delete">✕</button>'}</td></tr>`;
+  });
+  $('libTbl').innerHTML = h + '</tbody>';
+}
+
+function renderRefs(){
+  let h = `<thead><tr><th>Overpressure psi</th><th class="l">Expected damage on building structure</th><th class="l">Expected effect on the human body</th></tr></thead><tbody>`;
+  for (const d of DAMAGE){
+    const lbl = d.t2 != null ? `${d.t.toFixed(1)}–${d.t2.toFixed(1)}` : d.t;
+    const c = band(d.t);
+    h += `<tr><td class="${c}" style="text-align:left">${lbl}</td><td class="l wrap ${d.isHum&&!d.hum?'':c}">${esc(d.txt)}</td><td class="l wrap ${c}">${esc(d.hum||'')}</td></tr>`;
+  }
+  $('dmgTbl').innerHTML = h + '</tbody>';
+  let j = `<thead><tr><th class="l">Critical effect</th><th class="l">Likelihood</th><th>Peak pressure (psi)</th><th>kPa</th></tr></thead><tbody>`;
+  for (const x of INJURY) j += `<tr><td class="l">${x.eff}</td><td class="l">${x.lik}</td><td>${x.psi}</td><td>${fmt(x.psi*KPA_PER_PSI,0)}</td></tr>`;
+  $('injTbl').innerHTML = j + '</tbody>';
+}
+
+function update(full){
+  save();
+  if (full) renderScens();
+  renderProbe(); renderTables(); renderChart(); renderLegend();
+}
+function renderAll(){
+  document.querySelectorAll('.uDist').forEach(e => e.textContent = dU());
+  $('u-si').classList.toggle('on', !imp()); $('u-imp').classList.toggle('on', imp());
+  $('burst').value = st.burst;
+  $('dists').value = st.dists;
+  $('bandB').value = st.bandB; $('bandR').value = st.bandR;
+  renderLib(); renderRefs(); update(true);
+}
+
+/* ================= Events ================= */
+$('addScen').onclick = () => {
+  if (st.scens.length >= 4) return;
+  const last = st.scens[st.scens.length-1] || defaultScens()[0];
+  st.scens.push(Object.assign(clone(last), {name:'Scenario ' + String.fromCharCode(65 + st.scens.length)}));
+  update(true);
+};
+$('resetAll').onclick = () => { st.scens = defaultScens(); st.probe = 50; st.dists = DEFAULT_DISTS; st.burst = 'surface'; st.bandB = 2; st.bandR = 3; st.units = 'si'; renderAll(); };
+$('burst').onchange = e => { st.burst = e.target.value; update(true); };
+$('probeR').oninput = e => { st.probe = nice(fromSlider(+e.target.value, R_MIN, R_MAX)); $('probeRn').value = nice(dOut(st.probe)); renderProbe(); renderChart(); save(); };
+$('probeRn').onchange = e => { const v = parseFloat(e.target.value); if (v > 0){ st.probe = dIn(v); renderProbe(); renderChart(); save(); } };
+$('dists').onchange = e => {
+  // stored in display units; convert so switching units keeps the same physical distances
+  st.dists = e.target.value; renderTables(); save();
+};
+$('bandB').onchange = e => { st.bandB = +e.target.value; renderRefs(); update(false); };
+$('bandR').onchange = e => { st.bandR = +e.target.value; renderRefs(); update(false); };
+function setUnits(u){
+  if (st.units === u) return;
+  const ds = parseDists();           // metres, in old units
+  st.units = u;
+  st.dists = ds.map(d => nice(dOut(d))).join(',');
+  renderAll();
+}
+$('u-si').onclick = () => setUnits('si');
+$('u-imp').onclick = () => setUnits('imp');
+$('csv').onclick = () => {
+  const dists = parseDists();
+  const lines = [['Distance ('+dU()+')', ...st.scens.flatMap(s => [`${s.name} kPa`, `${s.name} psi`])].join(',')];
+  lines.push(['Charge', ...st.scens.flatMap(s => [`"${sig(mOut(s.mass))} ${mU()} ${(libById(s.expl)||{}).name||''} (P×${s.p} I×${s.i})"`, ''])].join(','));
+  for (const R of dists){
+    lines.push([nice(dOut(R)), ...st.scens.flatMap(s => { const {Wp,Wi} = effW(s); const b = blast(Wp,Wi,R); return [fmt(b.Pso), fmt(b.Pso/KPA_PER_PSI)]; })].join(','));
+  }
+  const blob = new Blob([lines.join('\n')], {type:'text/csv'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'blast-range-table.csv'; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+};
+$('libTbl').addEventListener('change', e => {
+  const tr = e.target.closest('tr'); if (!tr) return;
+  const ent = lib[+tr.dataset.idx], f = e.target.dataset.f;
+  if (!f) return;
+  ent[f] = (f === 'p' || f === 'i') ? Math.max(0.01, parseFloat(e.target.value) || ent[f]) : e.target.value;
+  // propagate updated factors to scenarios using this explosive
+  if (f === 'p' || f === 'i') st.scens.forEach(s => { if (s.expl === ent.id) s[f] = ent[f]; });
+  update(true);
+});
+$('libTbl').addEventListener('click', e => {
+  if (!e.target.dataset.del) return;
+  const idx = +e.target.closest('tr').dataset.idx, id = lib[idx].id;
+  lib.splice(idx, 1);
+  st.scens.forEach(s => { if (s.expl === id){ s.expl = 'tnt'; s.p = 1; s.i = 1; } });
+  renderLib(); update(true);
+});
+$('addExpl').onclick = () => {
+  lib.push({id:'c' + Date.now().toString(36), name:'Custom explosive', cat:'CUS', p:1.0, i:1.0, note:'User defined'});
+  renderLib(); update(true);
+};
+$('resetLib').onclick = () => {
+  if (!confirm('Restore the default explosive library? Your custom entries and edits will be lost.')) return;
+  lib = clone(DEFAULT_LIB);
+  st.scens.forEach(s => { if (!libById(s.expl)){ s.expl='tnt'; s.p=1; s.i=1; } });
+  renderLib(); update(true);
+};
+$('themeBtn').onclick = () => {
+  const r = document.documentElement;
+  const dark = r.dataset.theme ? r.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  r.dataset.theme = dark ? 'light' : 'dark';
+  renderChart();
+};
+
+// expose engine for testing / console use
+window.BlastKB = {blast, standoff, kbEval, psoZ};
+renderAll();
+</script>
+</body>
+</html>
