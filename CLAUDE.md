@@ -6,6 +6,8 @@ Build step `scripts/build-version.js` (Vercel) writes `version.json`.
 ## Access control
 - Supabase project `blast-tool` (ref `rabgawsevqkcdpbxzgak`, org James Norman). NOT Task-Bubbles.
 - Table `public.allowed_users` (email, role user|admin). Admins: james.norman@aecom.com, jamesenorman2@gmail.com.
+- `allowed_users` is the ONE shared allow list for every app on this Supabase project. The VDA Tool's
+  `public.vda_allowed_users` is an updatable view of it (security_invoker), so adding/removing anyone updates both apps.
 - `middleware.js` (Vercel edge) blocks every page except `login.html`/`auth.js`/`api/` unless the `bt_at` cookie
   holds a valid Supabase token whose email is on the allow list; `/admin*` needs role admin.
 - `api/magic-link.js` creates one-time sign-in links; needs Vercel env var `SUPABASE_SERVICE_ROLE_KEY`.
