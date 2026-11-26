@@ -2,6 +2,7 @@
   "buildCommand": "node scripts/build-version.js",
   "outputDirectory": ".",
   "framework": null,
+  "crons": [{ "path": "/api/keepalive", "schedule": "0 6 * * *" }],
   "headers": [
     { "source": "/(.*)", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] }
   ]
